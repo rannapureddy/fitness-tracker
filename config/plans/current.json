@@ -1,0 +1,168 @@
+{
+    "2026": {
+        "08": [
+            {
+                "day": 24,
+                "activity": "Squat + Bench + Deadlift"
+            },
+            {
+                "day": 25,
+                "activity": "Rest"
+            },
+            {
+                "day": 26,
+                "activity": "Incline Walk"
+            },
+            {
+                "day": 27,
+                "activity": "Easy Run",
+                "miles": 4
+            },
+            {
+                "day": 28,
+                "activity": "12x .25miles Repeats"
+            },
+            {
+                "day": 29,
+                "activity": "Rest"
+            },
+            {
+                "day": 30,
+                "activity": "Long Run",
+                "miles": 7.0
+            },
+            {
+                "day": 31,
+                "activity": "Squat + Bench + Deadlift"
+            }
+        ],
+        "09": [
+            {
+                "day": 1,
+                "activity": "Rest"
+            },
+            {
+                "day": 2,
+                "activity": "Incline Walk"
+            },
+            {
+                "day": 3,
+                "activity": "Easy Run",
+                "miles": 4
+            },
+            {
+                "day": 4,
+                "activity": "4x .5miles Repeats"
+            },
+            {
+                "day": 5,
+                "activity": "Rest"
+            },
+            {
+                "day": 6,
+                "activity": "Long Run",
+                "miles": 7
+            },
+            {
+                "day": 7,
+                "activity": "Squat + Bench + Deadlift"
+            },
+            {
+                "day": 8,
+                "activity": "Incline Walk"
+            },
+            {
+                "day": 9,
+                "activity": "Easy Run",
+                "miles": 3.1
+            },
+            {
+                "day": 10,
+                "activity": "Easy Run",
+                "miles": 3.1
+            },
+            {
+                "day": 11,
+                "activity": "6x .5miles Repeats"
+            },
+            {
+                "day": 12,
+                "activity": "Rest"
+            },
+            {
+                "day": 13,
+                "activity": "Long Run",
+                "miles": 7.5
+            },
+            {
+                "day": 14,
+                "activity": "Squat + Bench + Deadlift"
+            },
+            {
+                "day": 15,
+                "activity": "Incline Walk"
+            },
+            {
+                "day": 16,
+                "activity": "5k @ HMP"
+            },
+            {
+                "day": 17,
+                "activity": "Easy Run",
+                "miles": 4.0
+            },
+            {
+                "day": 18,
+                "activity": "Rest"
+            },
+            {
+                "day": 19,
+                "activity": "Rest"
+            },
+            {
+                "day": 20,
+                "activity": "Rest"
+            },
+            {
+                "day": 21,
+                "activity": "Rest"
+            },
+            {
+                "day": 22,
+                "activity": "Rest"
+            },
+            {
+                "day": 23,
+                "activity": "Rest"
+            },
+            {
+                "day": 24,
+                "activity": "Rest"
+            },
+            {
+                "day": 25,
+                "activity": "Rest"
+            },
+            {
+                "day": 26,
+                "activity": "Rest"
+            },
+            {
+                "day": 27,
+                "activity": "Rest"
+            },
+            {
+                "day": 28,
+                "activity": "Rest"
+            },
+            {
+                "day": 29,
+                "activity": "Rest"
+            },
+            {
+                "day": 30,
+                "activity": "Rest"
+            }
+        ]
+    }
+}

@@ -1,0 +1,2622 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Rohit's Fitness Tracker</title>
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%2314171C%22/><text x=%2250%22 y=%2258%22 font-size=%2242%22 font-family=%22-apple-system,sans-serif%22 font-weight=%22800%22 fill=%22%23E8A33D%22 text-anchor=%22middle%22>RA</text></svg>">
+
+  <!-- PWA: installable "Add to Home Screen" support -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#14171C">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Fitness Tracker">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+  <style>
+    :root {
+      --bg: #14171C;
+      --surface: #1E2229;
+      --surface-2: #262B33;
+      --line: #333A44;
+      --amber: #E8A33D;
+      --chalk: #F5F1E8;
+      --green: #6FA97B;
+      --muted: #8A8F98;
+      --run: #5B9BD5;
+      --lift: #B07FE0;
+      --race: #E8A33D;
+      --restday: #6B7280;
+      --hybrid: #6FBFA0;
+      --intervals: #E0678C;
+      --walk: #9CAF54;
+      --tempo: #F4A261;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--chalk);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      color-scheme: dark;
+    }
+
+    .app {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 0 0 40px 0;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      position: relative;
+      padding: 28px 18px 22px 18px;
+      background:
+        radial-gradient(120% 140% at 15% 0%, rgba(232, 163, 61, 0.20), transparent 60%),
+        linear-gradient(180deg, rgba(232, 163, 61, 0.10), rgba(232, 163, 61, 0) 70%);
+      overflow: hidden;
+    }
+
+    .header::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--amber) 35%, #f2c574 50%, var(--amber) 65%, transparent);
+      box-shadow: 0 0 10px 1px rgba(232, 163, 61, 0.45);
+    }
+
+    .header-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+    }
+
+    .header-badge {
+      flex-shrink: 0;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      color: var(--amber);
+      background: linear-gradient(160deg, var(--surface-2), var(--bg));
+      border: 1.5px solid var(--amber);
+      box-shadow: 0 0 12px 1px rgba(232, 163, 61, 0.4), inset 0 0 10px rgba(232, 163, 61, 0.12);
+    }
+
+    .header-text {
+      min-width: 0;
+    }
+
+    .title {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin: 0;
+      text-transform: uppercase;
+      line-height: 1.15;
+      background: linear-gradient(90deg, var(--chalk), #c9c2b2);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-tagline {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--amber);
+      margin-top: 3px;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 6px;
+      padding: 14px 18px 0 18px;
+    }
+
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 10px 0;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      cursor: pointer;
+      border-radius: 10px 10px 0 0;
+      border-bottom: none;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .tab.active {
+      color: var(--bg);
+      background: linear-gradient(180deg, #f2c574, var(--amber));
+      border-color: var(--amber);
+    }
+
+    .content {
+      padding: 16px 18px;
+    }
+
+    /* Week nav */
+    .week-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px 14px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+      transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+    }
+
+    .week-nav.current-week {
+      background: linear-gradient(135deg, #f2c574, var(--amber));
+      border-color: var(--amber);
+      box-shadow: 0 4px 14px rgba(232, 163, 61, 0.28);
+    }
+
+    .week-nav.current-week button {
+      background: rgba(20, 23, 28, 0.18);
+      border-color: rgba(20, 23, 28, 0.3);
+      color: var(--bg);
+    }
+
+    .week-nav.current-week .week-dates {
+      color: var(--bg);
+    }
+
+    .week-nav.current-week .week-info::after {
+      content: "\2022 CURRENT WEEK";
+      display: block;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      margin-top: 4px;
+      opacity: 0.75;
+    }
+
+    .week-nav button {
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      color: var(--chalk);
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .week-nav button:active:not(:disabled) {
+      transform: scale(0.92);
+    }
+
+    .week-nav button:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+
+    .week-nav .week-info {
+      text-align: center;
+      flex: 1;
+    }
+
+    .week-dates {
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+
+    /* Weekly summary */
+    .summary {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .summary-box {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 14px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+    }
+
+    .summary-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+    }
+
+    .summary-value {
+      font-size: 20px;
+      font-weight: 800;
+      margin-top: 2px;
+    }
+
+    .summary-value.amber {
+      color: var(--amber);
+    }
+
+    /* Day cards */
+    .day-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--line);
+      border-radius: 12px;
+      margin-bottom: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+      transition: box-shadow 0.15s, transform 0.1s;
+    }
+
+    .day-card:active {
+      transform: scale(0.995);
+    }
+
+    .day-card.rest {
+      opacity: 0.7;
+      border-left-color: var(--restday);
+      background: linear-gradient(135deg, rgba(107, 114, 128, 0.28), rgba(107, 114, 128, 0.08) 100%);
+    }
+
+    .day-card.run {
+      border-left-color: var(--run);
+      background: linear-gradient(135deg, rgba(91, 155, 213, 0.42), rgba(91, 155, 213, 0.12) 100%);
+    }
+
+    .day-card.lift {
+      border-left-color: var(--lift);
+      background: linear-gradient(135deg, rgba(176, 127, 224, 0.42), rgba(176, 127, 224, 0.12) 100%);
+    }
+
+    .day-card.hybrid {
+      border-left-color: var(--hybrid);
+      background: linear-gradient(135deg, rgba(111, 191, 160, 0.42), rgba(111, 191, 160, 0.12) 100%);
+    }
+
+    .day-card.intervals {
+      border-left-color: var(--intervals);
+      background: linear-gradient(135deg, rgba(224, 103, 140, 0.42), rgba(224, 103, 140, 0.12) 100%);
+    }
+
+    .day-card.walk {
+      border-left-color: var(--walk);
+      background: linear-gradient(135deg, rgba(156, 175, 84, 0.42), rgba(156, 175, 84, 0.12) 100%);
+    }
+
+    .day-card.tempo {
+      border-left-color: var(--tempo);
+      background: linear-gradient(135deg, rgba(244, 162, 97, 0.42), rgba(244, 162, 97, 0.12) 100%);
+    }
+
+    .day-card.race {
+      border-left-color: var(--race);
+      border-color: var(--amber);
+      box-shadow: 0 0 0 1px var(--amber) inset;
+      background: linear-gradient(135deg, rgba(232, 163, 61, 0.48), rgba(232, 163, 61, 0.15) 100%);
+    }
+
+    .day-card.today .day-date,
+    .day-card.today .day-name {
+      color: var(--amber);
+    }
+
+    .day-head {
+      display: flex;
+      align-items: center;
+      padding: 12px 14px;
+      cursor: pointer;
+      gap: 12px;
+    }
+
+    .day-badge {
+      width: 46px;
+      flex-shrink: 0;
+      text-align: center;
+    }
+
+    .day-name {
+      font-size: 10px;
+      text-transform: uppercase;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+
+    .day-date {
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .day-mid {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .day-activity {
+      font-size: 14px;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .day-pace {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .day-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .day-miles {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--amber);
+    }
+
+    .logged-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--green);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .logged-dot::after {
+      content: "\2713";
+      color: var(--bg);
+      font-size: 10px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .chevron {
+      color: var(--muted);
+      font-size: 12px;
+      transition: transform 0.15s;
+    }
+
+    .chevron.open {
+      transform: rotate(90deg);
+    }
+
+    .day-body {
+      padding: 0 14px 14px 14px;
+      border-top: 1px solid var(--line);
+      display: none;
+    }
+
+    .day-body.open {
+      display: block;
+    }
+
+    .field {
+      margin-top: 12px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .field input,
+    .field textarea {
+      width: 100%;
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      color: var(--chalk);
+      -webkit-text-fill-color: var(--chalk);
+      -webkit-appearance: none;
+      appearance: none;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    .field textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    .row2 {
+      display: flex;
+      gap: 10px;
+    }
+
+    .row2 .field {
+      flex: 1;
+    }
+
+    .save-btn {
+      margin-top: 14px;
+      width: 100%;
+      background: linear-gradient(180deg, #f2c574, var(--amber));
+      color: var(--bg);
+      border: none;
+      padding: 12px 0;
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(232, 163, 61, 0.25);
+    }
+
+    .save-btn:active {
+      opacity: 0.85;
+    }
+
+    .saved-note {
+      font-size: 11px;
+      color: var(--green);
+      margin-top: 8px;
+      display: none;
+    }
+
+    .saved-note.show {
+      display: block;
+    }
+
+    /* Pace guide */
+    .pace-hero {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+
+    .pace-hero .goal-time {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--amber);
+      letter-spacing: -0.01em;
+    }
+
+    .pace-hero .goal-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-top: 4px;
+    }
+
+    .pace-table {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .pace-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .pace-row:last-child {
+      border-bottom: none;
+    }
+
+    .pace-type {
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .pace-ref {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .pace-val {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--amber);
+      text-align: right;
+      flex-shrink: 0;
+      padding-left: 12px;
+    }
+
+    .pace-mph {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-align: right;
+      margin-top: 2px;
+    }
+
+    .empty-note {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      padding: 20px 0;
+    }
+
+    /* PRs tab */
+    .pr-section {
+      margin-bottom: 22px;
+    }
+
+    .pr-section-title {
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .pr-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .pr-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+
+    .pr-card.empty {
+      opacity: 0.55;
+    }
+
+    .pr-card-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+
+    .pr-card-value {
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--amber);
+      margin-top: 4px;
+    }
+
+    .pr-card.lift .pr-card-value {
+      color: var(--lift);
+    }
+
+    .pr-card-meta {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .pr-card-extras {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--line);
+    }
+
+    .pr-card-extra-row {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .pr-card-extra-row:first-child {
+      margin-top: 0;
+    }
+
+    .pr-card-extra-rank {
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      width: 24px;
+      flex-shrink: 0;
+    }
+
+    .pr-card-extra-time {
+      font-weight: 700;
+      color: var(--chalk);
+    }
+
+    .pr-card-extra-date {
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    .chart-box {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px 12px 8px 4px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+      height: 220px;
+    }
+
+    /* Lift day set editor */
+    .exercise-block {
+      margin-top: 14px;
+    }
+
+    .exercise-block:first-child {
+      margin-top: 0;
+    }
+
+    .exercise-title {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--lift);
+      margin-bottom: 8px;
+    }
+
+    .set-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .set-label {
+      width: 34px;
+      font-size: 11px;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .stepper {
+      display: flex;
+      align-items: center;
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 2px;
+      flex: 1;
+    }
+
+    .stepper.distance {
+      background: rgba(91, 155, 213, 0.16);
+      border-color: rgba(91, 155, 213, 0.45);
+    }
+
+    .stepper.distance .stepper-unit {
+      color: var(--run);
+    }
+
+    .stepper.time {
+      background: rgba(224, 103, 140, 0.16);
+      border-color: rgba(224, 103, 140, 0.45);
+    }
+
+    .stepper.time .stepper-unit {
+      color: var(--intervals);
+    }
+
+    .stepper input {
+      width: 100%;
+      min-width: 0;
+      text-align: center;
+      background: transparent;
+      border: none;
+      color: var(--chalk);
+      -webkit-text-fill-color: var(--chalk);
+      -webkit-appearance: none;
+      appearance: none;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: inherit;
+      padding: 8px 4px;
+    }
+
+    .stepper input::-webkit-outer-spin-button,
+    .stepper input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    .stepper-unit {
+      font-size: 9px;
+      color: var(--muted);
+      text-transform: uppercase;
+      padding: 0 4px;
+      flex-shrink: 0;
+    }
+
+    .remove-set {
+      width: 28px;
+      height: 28px;
+      border: 1px solid var(--line);
+      background: var(--surface-2);
+      color: var(--muted);
+      border-radius: 6px;
+      font-size: 15px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .add-set-btn {
+      margin-top: 2px;
+      background: none;
+      border: 1px dashed var(--line);
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 9px;
+      width: 100%;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .add-set-btn:active {
+      background: var(--surface-2);
+    }
+
+    .time-steppers {
+      display: flex;
+      gap: 6px;
+    }
+
+    .time-stepper {
+      flex: 1;
+    }
+
+    .time-stepper input {
+      width: 100%;
+    }
+
+    .pace-display {
+      margin-top: 12px;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--amber);
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      text-align: center;
+      letter-spacing: 0.02em;
+    }
+
+    .plan-edit-toggle {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      padding-top: 4px;
+      padding-bottom: 10px;
+      user-select: none;
+    }
+
+    .plan-edit-toggle:active {
+      color: var(--chalk);
+    }
+
+    .plan-edit-panel {
+      display: none;
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 14px;
+    }
+
+    .plan-edit-panel.open {
+      display: block;
+    }
+
+    .plan-save-btn {
+      background: var(--lift);
+      margin-top: 12px;
+    }
+
+    .export-btn {
+      margin-top: 6px;
+      width: 100%;
+      background: var(--surface-2);
+      color: var(--chalk);
+      border: 1px solid var(--line);
+      padding: 11px 0;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+    }
+
+    .export-btn:active {
+      background: var(--line);
+    }
+
+    .run-section-title {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--run);
+      margin-bottom: 8px;
+      margin-top: 14px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <div class="header">
+      <div class="header-row">
+        <div class="header-badge">RA</div>
+        <div class="header-text">
+          <h1 class="title">Rohit's Fitness Tracker</h1>
+          <div class="header-tagline">Run &middot; Lift &middot; Track</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" id="tabLog" onclick="switchTab('log')">Log</div>
+      <div class="tab" id="tabPace" onclick="switchTab('pace')">Pace Guide</div>
+      <div class="tab" id="tabWeight" onclick="switchTab('weight')">Weight</div>
+      <div class="tab" id="tabStats" onclick="switchTab('stats')">Stats</div>
+    </div>
+
+    <div class="content">
+      <div id="logView">
+        <div class="week-nav">
+          <button id="prevBtn" onclick="changeWeek(-1)">‹</button>
+          <div class="week-info">
+            <div class="week-dates" id="weekDates">-</div>
+          </div>
+          <button id="nextBtn" onclick="changeWeek(1)">›</button>
+        </div>
+
+        <div class="summary">
+          <div class="summary-box">
+            <div class="summary-label">Planned</div>
+            <div class="summary-value" id="plannedMiles">0.0 mi</div>
+          </div>
+          <div class="summary-box">
+            <div class="summary-label">Logged</div>
+            <div class="summary-value amber" id="loggedMiles">0.0 mi</div>
+          </div>
+        </div>
+
+        <div id="dayList"></div>
+
+        <button class="export-btn" onclick="exportWeekSummary()">📋 Get Summary</button>
+        <div class="saved-note" id="exportSaved">Copied to clipboard!</div>
+      </div>
+
+      <div id="paceView" style="display:none;">
+        <div class="pace-hero">
+          <div class="goal-time" id="paceGoalTime">&mdash;</div>
+          <div class="goal-label" id="paceGoalLabel">&nbsp;</div>
+        </div>
+
+        <div class="plan-edit-toggle" onclick="togglePREdit()">&#9998; Edit PR times</div>
+        <div class="plan-edit-panel" id="prEditPanel">
+          <div id="prEditFields"></div>
+          <button class="save-btn plan-save-btn" onclick="savePaceGuidePRs()">Save PR Times</button>
+          <div class="saved-note" id="prSaved">Saved &mdash; paces recalculated</div>
+        </div>
+
+        <div class="pace-table" id="paceTable"></div>
+      </div>
+
+      <div id="weightView" style="display:none;">
+        <div class="summary">
+          <div class="summary-box">
+            <div class="summary-label">Current</div>
+            <div class="summary-value amber" id="weightCurrent">&mdash;</div>
+          </div>
+          <div class="summary-box">
+            <div class="summary-label">7-Day Change</div>
+            <div class="summary-value" id="weightChange7">&mdash;</div>
+          </div>
+        </div>
+
+        <div class="week-nav" style="margin-bottom: 14px;">
+          <div class="field" style="margin-top: 0; flex: 1;">
+            <label>Date</label>
+            <input type="date" id="weightDateInput" onchange="renderWeightTab()">
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label>Weight (lb)</label>
+            <input type="number" inputmode="decimal" step="0.1" min="0" max="200" placeholder="e.g. 165.0"
+              id="weightValueInput">
+          </div>
+        </div>
+        <button class="save-btn" onclick="saveWeightEntry()">Save</button>
+        <div class="saved-note" id="weightSaved">Saved</div>
+
+        <div class="pr-section" style="margin-top: 20px;">
+          <div class="pr-section-title">History</div>
+          <div class="pace-table" id="weightHistory"></div>
+        </div>
+      </div>
+
+      <div id="statsView" style="display:none;">
+        <div class="pr-section">
+          <div class="pr-section-title">Overview</div>
+          <div class="pr-grid" id="statsOverviewGrid"></div>
+        </div>
+        <div class="pr-section">
+          <div class="pr-section-title">Weekly Mileage</div>
+          <div class="chart-box"><canvas id="mileageChart"></canvas></div>
+          <div class="empty-note" id="mileageEmpty" style="display:none;">No runs logged yet</div>
+        </div>
+        <div class="pr-section">
+          <div class="pr-section-title">Estimated 1RM by Lift</div>
+          <div class="chart-box"><canvas id="liftChart"></canvas></div>
+          <div class="empty-note" id="liftEmpty" style="display:none;">No lifts logged yet</div>
+        </div>
+        <div class="pr-section">
+          <div class="pr-section-title">Weight Trend</div>
+          <div class="chart-box"><canvas id="weightChart"></canvas></div>
+          <div class="empty-note" id="weightChartEmpty" style="display:none;">No weigh-ins logged yet</div>
+        </div>
+        <div class="pr-section">
+          <div class="pr-section-title">Running PRs</div>
+          <div class="pr-grid" id="prRunGrid"></div>
+        </div>
+        <div class="pr-section">
+          <div class="pr-section-title">Lifting PRs</div>
+          <div class="pr-grid" id="prLiftGrid"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="chart.umd.js"></script>
+  <script>
+    let PLAN = [];
+    let PACE_GUIDE = { goal: null, paces: [] };
+    // Loaded from /api/race-distances; empty list if unavailable.
+    let RACE_DISTANCES = [];
+
+    // ---- Group plan into 7-day chunks for pagination ----
+    function groupWeeks(plan) {
+      const weeks = [];
+      for (let i = 0; i < plan.length; i += 7) {
+        weeks.push({ days: plan.slice(i, i + 7) });
+      }
+      return weeks;
+    }
+    let WEEKS = [];
+
+    // Parses "YYYY-MM-DD" as local midnight (avoids the UTC-shift bug of new Date(iso) alone).
+    function toLocalDate(iso) {
+      return new Date(iso + "T00:00:00");
+    }
+
+    // Formats a Date object as a local "YYYY-MM-DD" string.
+    function formatISODate(d) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    // Adds (or subtracts, if negative) days to an ISO date string.
+    function isoDateAddDays(iso, days) {
+      const d = toLocalDate(iso);
+      d.setDate(d.getDate() + days);
+      return formatISODate(d);
+    }
+
+    const DAY_ABBREVS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    function dayAbbrev(iso) {
+      return DAY_ABBREVS[toLocalDate(iso).getDay()];
+    }
+    function fmtDate(iso) {
+      return toLocalDate(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+    function fmtDateShort(iso) {
+      return toLocalDate(iso).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    }
+
+    function fmtDateRange(startIso, endIso) {
+      const start = toLocalDate(startIso);
+      const end = toLocalDate(endIso);
+      const startMonth = start.toLocaleDateString('en-US', { month: 'long' });
+      const endMonth = end.toLocaleDateString('en-US', { month: 'long' });
+
+      const startDay = start.getDate();
+      const endDay = end.getDate();
+
+      const startYear = start.getFullYear();
+      const endYear = end.getFullYear();
+
+      const sameYear = startYear === endYear;
+      const sameMonth = sameYear && start.getMonth() === end.getMonth();
+
+      if (sameMonth) {
+        return `${startMonth} ${startDay} – ${endDay}, ${endYear}`;
+      }
+
+      if (sameYear) {
+        return `${startMonth} ${startDay} – ${endMonth} ${endDay}, ${endYear}`;
+      }
+
+      return `${startMonth} ${startDay}, ${startYear} – ${endMonth} ${endDay}, ${endYear}`;
+    }
+
+    // ---- Find current week index based on real today ----
+    function findCurrentWeekIndex() {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      for (let i = 0; i < WEEKS.length; i++) {
+        const days = WEEKS[i].days;
+        const first = toLocalDate(days[0].date);
+        const last = toLocalDate(days[days.length - 1].date);
+        if (today >= first && today <= last) return i;
+        if (today < first) return i;
+      }
+      return WEEKS.length - 1;
+    }
+
+    let weekIdx = 0;
+    let entriesCache = {};
+
+    const TABS = ['log', 'pace', 'weight', 'stats'];
+
+    function switchTab(active) {
+      TABS.forEach(tab => {
+        const name = tab[0].toUpperCase() + tab.slice(1);
+        document.getElementById(`tab${name}`).classList.toggle('active', tab === active);
+        document.getElementById(`${tab}View`).style.display = tab === active ? 'block' : 'none';
+      });
+      if (active === 'weight') renderWeightTab();
+      if (active === 'stats') renderStatsTab();
+    }
+
+    function showSaved(id, duration = 1800) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), duration);
+    }
+
+    // Reads a numeric input's value by id, defaulting to 0.
+    function readNum(id) {
+      return parseFloat(document.getElementById(id)?.value) || 0;
+    }
+
+    const METERS_PER_MILE = 1609.34;
+
+    // Matches interval titles like "10x400m Repeats" or "10x0.25mi Repeats" / "10x.25miles".
+    const INTERVAL_TITLE_RE = /(\d+)\s*[xX]\s*(\d*\.?\d+)\s*(mi|miles|mile|m)\b/i;
+
+    // Looks up a day's plan entry in the currently-viewed week by date.
+    function findPlanEntry(date) {
+      return WEEKS[weekIdx].days.find(d => d.date === date);
+    }
+
+    // Sends JSON, throws on non-OK, parses JSON response.
+    async function apiFetch(url, opts = {}) {
+      const fetchOpts = { ...opts };
+      if (fetchOpts.body !== undefined && typeof fetchOpts.body !== 'string') {
+        fetchOpts.headers = { 'Content-Type': 'application/json', ...(fetchOpts.headers || {}) };
+        fetchOpts.body = JSON.stringify(fetchOpts.body);
+      }
+      const res = await fetch(url, fetchOpts);
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || `${url} failed (${res.status})`);
+      }
+      if (res.status === 204) return null;
+      return res.json().catch(() => null);
+    }
+
+    async function loadPaceGuide() {
+      try {
+        PACE_GUIDE = await apiFetch('/api/pace-guide');
+      } catch (e) {
+        console.error('pace guide load failed', e);
+        PACE_GUIDE = { goal: null, paces: [] };
+      }
+    }
+
+    async function loadRaceDistances() {
+      try {
+        RACE_DISTANCES = await apiFetch('/api/race-distances');
+      } catch (e) {
+        console.error('race distances load failed', e);
+        RACE_DISTANCES = [];
+      }
+    }
+
+    // Parses a "M:SS" clock string into total minutes as a float.
+    function paceClockToMinutes(clock) {
+      const [m, s] = clock.split(':').map(Number);
+      return m + (s || 0) / 60;
+    }
+
+    // Builds a pace entry's display string ("7:56 /mi") and derived mph, computed from the pace itself.
+    function derivePaceDisplay(entry) {
+      const unitLabel = entry.unit === 'rep' ? '/rep' : '/mile';
+      const clocks = entry.pace.split('\u2013').map(s => s.trim());
+      const display = `${entry.pace} ${unitLabel}`;
+
+      // Miles covered per pace unit: 1 for "mi", or rep distance (meters) converted for "rep".
+      const unitMiles = entry.unit === 'rep'
+        ? (entry.unit_meters || 0) / METERS_PER_MILE
+        : 1;
+      if (!unitMiles) return { display, mph: null };
+
+      const mphValues = clocks
+        .map(paceClockToMinutes)
+        .map(min => (min > 0 ? unitMiles / (min / 60) : null))
+        .filter(v => v !== null)
+        .sort((a, b) => a - b);
+      if (!mphValues.length) return { display, mph: null };
+
+      const mph = mphValues.length === 1
+        ? `${mphValues[0].toFixed(1)} mph`
+        : `${mphValues[0].toFixed(1)}\u2013${mphValues[mphValues.length - 1].toFixed(1)} mph`;
+      return { display, mph };
+    }
+
+    // Looks up the PR a pace was derived from, e.g. "From 5K (22:35)".
+    // Suppressed when redundant with the card's own distance label.
+    function paceSourceLabel(p) {
+      if (p.manual) return p.note || 'Manual';
+      const prId = p.source && p.source.pr_id;
+      if (!prId) return '';
+      const pr = (PACE_GUIDE.prs || []).find(x => x.id === prId);
+      if (!pr) return '';
+
+      if (p.unit !== 'rep') {
+        const impliedDistance = p.type.replace(/ Pace$/, '').replace(/ Race Effort$/, '');
+        if (impliedDistance === pr.distance) return '';
+      }
+
+      const goalTag = pr.status === 'goal' ? ' goal' : '';
+      return `From ${pr.distance}${goalTag} (${pr.time})`;
+    }
+
+    function renderPaceTable() {
+      const goalTimeEl = document.getElementById('paceGoalTime');
+      const goalLabelEl = document.getElementById('paceGoalLabel');
+      if (PACE_GUIDE.goal) {
+        const g = PACE_GUIDE.goal;
+        goalTimeEl.textContent = g.time || '\u2014';
+        const raceName = g.race_name ? `Goal ${g.race_name}` : '';
+        const raceDate = g.race_date ? `Race Day ${fmtDateShort(g.race_date)}` : '';
+        goalLabelEl.textContent = [raceName, raceDate].filter(Boolean).join(' \u00b7 ');
+      } else {
+        goalTimeEl.textContent = '\u2014';
+        goalLabelEl.textContent = '';
+      }
+
+      renderPREditFields();
+
+      const el = document.getElementById('paceTable');
+      if (!PACE_GUIDE.paces || !PACE_GUIDE.paces.length) {
+        el.innerHTML = '<div class="empty-note">Could not load the pace guide. Is the backend running?</div>';
+        return;
+      }
+      el.innerHTML = PACE_GUIDE.paces.map(p => {
+        const { display, mph } = derivePaceDisplay(p);
+        const sourceLabel = paceSourceLabel(p);
+        return `
+    <div class="pace-row">
+      <div>
+        <div class="pace-type">${p.type}</div>
+        ${sourceLabel ? `<div class="pace-ref">${sourceLabel}</div>` : ''}
+      </div>
+      <div>
+        <div class="pace-val">${display}</div>
+        ${mph ? `<div class="pace-mph">${mph}</div>` : ''}
+      </div>
+    </div>
+  `;
+      }).join('');
+    }
+
+    // ---- Pace guide PR editing ----
+    function togglePREdit() {
+      const panel = document.getElementById('prEditPanel');
+      if (panel) panel.classList.toggle('open');
+    }
+
+    function renderPREditFields() {
+      const el = document.getElementById('prEditFields');
+      if (!el) return;
+      const prs = PACE_GUIDE.prs || [];
+      if (!prs.length) {
+        el.innerHTML = '<div class="empty-note">No PRs in the pace guide</div>';
+        return;
+      }
+      el.innerHTML = prs.map(pr => {
+        const badge = pr.modified
+          ? ' <span style="color: var(--amber); text-transform: none; letter-spacing: 0;">(customized)</span>'
+          : '';
+        const resetBtn = pr.modified
+          ? `<button type="button" class="save-btn plan-save-btn" style="background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); margin-top: 6px;" onclick="resetPaceGuidePR('${pr.id}')">&#8634; Reset to default</button>`
+          : '';
+        return `
+    <div class="field">
+      <label>${escapeHTML(pr.distance)}${pr.status === 'goal' ? ' (Goal)' : ''}${badge}</label>
+      <input type="text" id="prTime-${pr.id}" value="${escapeHTML(pr.time)}" placeholder="M:SS or H:MM:SS">
+      ${resetBtn}
+    </div>
+  `;
+      }).join('');
+    }
+
+    async function savePaceGuidePRs() {
+      const prs = (PACE_GUIDE.prs || []).map(pr => ({
+        id: pr.id,
+        time: document.getElementById('prTime-' + pr.id)?.value.trim() || pr.time,
+      }));
+      try {
+        PACE_GUIDE = await apiFetch('/api/pace-guide/prs', { method: 'POST', body: { prs } });
+        renderPaceTable();
+        showSaved('prSaved');
+      } catch (e) {
+        console.error('pace guide PR save failed', e);
+        alert(e.message || 'Failed to save PR times');
+      }
+    }
+
+    async function resetPaceGuidePR(prId) {
+      if (!confirm('Reset this PR back to the pace guide default? Your saved time will be discarded.')) return;
+      try {
+        PACE_GUIDE = await apiFetch('/api/pace-guide/prs/' + encodeURIComponent(prId) + '/reset', { method: 'POST' });
+        renderPaceTable();
+      } catch (e) {
+        console.error('pace guide PR reset failed', e);
+        alert(e.message || 'Failed to reset PR');
+      }
+    }
+
+    function activityKind(activity) {
+      if (activity === 'Rest') return 'rest';
+      if (/RACE|MARATHON/.test(activity)) return 'race';
+      if (INTERVAL_TITLE_RE.test(activity)) return 'intervals';
+      const hasLift = /Squat|Bench|Deadlift/.test(activity);
+      const hasTempo = /\btempo\b|\bHMP\b/i.test(activity);
+      const hasRun = hasTempo || /\b(run|fartlek|progression|strides?|shakeout)\b/i.test(activity);
+      const hasWalk = /\bwalk\b/i.test(activity);
+      if (hasLift && hasRun) return 'hybrid';
+      if (hasLift) return 'lift';
+      if (hasTempo) return 'tempo';
+      if (hasRun) return 'run';
+      if (hasWalk) return 'walk';
+      return 'other';
+    }
+
+    function cardColorKind(kind) {
+      return kind === 'other' ? 'hybrid' : kind;
+    }
+
+    function countsAsMileage(kind) {
+      return ['run', 'tempo', 'race', 'hybrid', 'intervals'].includes(kind);
+    }
+
+    // Sub-classifies a mileage day for the Stats tab's stacked weekly chart,
+    // splitting "run"/"hybrid" further by keyword in the activity text.
+    function runTypeLabel(kind, activity) {
+      if (kind === 'intervals') return 'Intervals';
+      if (kind === 'race') return 'Race';
+      const a = activity || '';
+      if (/long/i.test(a)) return 'Long Run';
+      if (/tempo/i.test(a)) return 'Tempo Run';
+      if (/pace/i.test(a)) return 'Pace Run';
+      return 'Easy Run';
+    }
+
+    function runTypeColor(label) {
+      const palette = {
+        'Easy Run': cssVar('--run', '#5B9BD5'),
+        'Long Run': '#4FD1C5',
+        'Tempo Run': '#F4A261',
+        'Pace Run': '#9B8AFB',
+        'Intervals': cssVar('--intervals', '#E0678C'),
+        'Race': cssVar('--race', '#E8A33D'),
+      };
+      return palette[label] || cssVar('--muted', '#8A8F98');
+    }
+
+    function estimate1RM(weight, reps) {
+      return weight * (1 + reps / 30);
+    }
+
+    async function loadAllEntries() {
+      try {
+        entriesCache = await apiFetch('/api/entries');
+      } catch (e) {
+        console.error('load failed', e);
+        entriesCache = {};
+      }
+      // "seeded" = at least one entry already exists in the backend
+      return Object.keys(entriesCache).length > 0;
+    }
+
+    async function saveEntry(date, data) {
+      try {
+        await apiFetch('/api/entries/' + encodeURIComponent(date), { method: 'POST', body: data });
+        entriesCache[date] = data;
+        return true;
+      } catch (e) {
+        console.error('save failed', e);
+        alert('Could not save: ' + e.message);
+        return false;
+      }
+    }
+
+    async function deleteEntry(date) {
+      try {
+        await apiFetch('/api/entries/' + encodeURIComponent(date), { method: 'DELETE' });
+        delete entriesCache[date];
+        return true;
+      } catch (e) {
+        console.error('delete failed', e);
+        return false;
+      }
+    }
+
+    function dayCardHTML(entry, logged) {
+      const kind = activityKind(entry.activity);
+      const colorKind = cardColorKind(kind);
+      const hasLog = !!logged;
+      const isToday = entry.date === todayISO();
+      const dateLabel = fmtDate(entry.date);
+      let milesDisplay = '';
+      if (countsAsMileage(kind)) {
+        // Prefer the actual logged distance over the planned estimate.
+        const actualMiles = logged && logged.miles;
+        const displayMiles = (actualMiles !== undefined && actualMiles !== null && actualMiles !== 0)
+          ? actualMiles
+          : plannedMilesFor(entry, kind);
+        milesDisplay = displayMiles ? displayMiles + ' mi' : '';
+      }
+      return `
+  <div class="day-card ${colorKind}${isToday ? ' today' : ''}" data-date="${entry.date}">
+    <div class="day-head" onclick="toggleDay('${entry.date}')">
+      <div class="day-badge">
+        <div class="day-name">${dayAbbrev(entry.date)}</div>
+        <div class="day-date">${dateLabel}</div>
+      </div>
+      <div class="day-mid">
+        <div class="day-activity">${escapeHTML(entry.activity)}</div>
+        ${entry.pace ? `<div class="day-pace">${escapeHTML(entry.pace)}</div>` : ''}
+      </div>
+      <div class="day-right">
+        ${milesDisplay ? `<div class="day-miles">${milesDisplay}</div>` : ''}
+        ${hasLog ? `<div class="logged-dot"></div>` : ''}
+        <div class="chevron" id="chev-${entry.date}">&rsaquo;</div>
+      </div>
+    </div>
+    <div class="day-body" id="body-${entry.date}"></div>
+  </div>`;
+    }
+
+    function exercisesForActivity(activity) {
+      const found = [];
+      if (/Squat/i.test(activity)) found.push('Squat');
+      if (/Bench/i.test(activity)) found.push('Bench');
+      if (/Deadlift/i.test(activity)) found.push('Deadlift');
+      return found.length ? found : ['Lift'];
+    }
+
+    // Shared renderer for a labeled row of numeric steppers + remove button (lift sets, interval reps, mile splits).
+    function stepperRowHTML({ rid, label, fields, onRemoveExtra = '' }) {
+      const stepperEls = fields.map(f => `
+      <div class="stepper${f.variant ? ' ' + f.variant : ''}">
+        <input type="number" id="${rid}-${f.suffix}" value="${f.value}" inputmode="numeric" min="0"${f.max !== undefined ? ` max="${f.max}"` : ''}${f.oninput ? ` oninput="${f.oninput}"` : ''}>
+        <span class="stepper-unit">${f.unit}</span>
+      </div>`).join('');
+      return `
+    <div class="set-row" id="${rid}">
+      <div class="set-label">${label}</div>${stepperEls}
+      <button type="button" class="remove-set" onclick="removeSetRow('${rid}')${onRemoveExtra}">&times;</button>
+    </div>`;
+    }
+
+    function setRowHTML(date, exercise, idx, weight, reps) {
+      const rid = `set-${date}-${exercise}-${idx}`;
+      return stepperRowHTML({
+        rid,
+        label: `Set ${idx + 1}`,
+        fields: [
+          { suffix: 'w', value: weight, unit: 'lb' },
+          { suffix: 'r', value: reps, unit: 'reps' },
+        ],
+      });
+    }
+
+    function computeTimeSeconds(date) {
+      const h = parseInt(document.getElementById(`time-${date}-h`)?.value, 10) || 0;
+      const m = parseInt(document.getElementById(`time-${date}-m`)?.value, 10) || 0;
+      const s = parseInt(document.getElementById(`time-${date}-s`)?.value, 10) || 0;
+      return h * 3600 + m * 60 + s;
+    }
+
+    function formatPace(secondsPerMile) {
+      if (!isFinite(secondsPerMile) || secondsPerMile <= 0) return '--:-- /mile';
+      const m = Math.floor(secondsPerMile / 60);
+      const s = Math.round(secondsPerMile % 60);
+      return `${m}:${String(s).padStart(2, '0')} /mile`;
+    }
+
+    function formatTime(totalSeconds) {
+      totalSeconds = Math.round(totalSeconds);
+      const h = Math.floor(totalSeconds / 3600);
+      const m = Math.floor((totalSeconds % 3600) / 60);
+      const s = totalSeconds % 60;
+      if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+      return `${m}:${String(s).padStart(2, '0')}`;
+    }
+
+    const PR_LIFT_EXERCISES = ['Squat', 'Bench', 'Deadlift'];
+
+    // Riegel's race-time prediction formula: T2 = T1 * (D2/D1)^1.06.
+    function riegelPredict(timeSeconds, fromMiles, toMiles) {
+      return timeSeconds * Math.pow(toMiles / fromMiles, 1.06);
+    }
+
+    function computePRs() {
+      const running = {
+        longestRuns: [],       // [{ miles, date, timeSeconds }, ...] sorted longest-first, top 3
+        byDistance: {},        // label -> [{ predicted, date, sourceMiles, sourceTimeSeconds }, ...] sorted fastest-first
+        splitBests: {},        // label -> [{ seconds, date }, ...] sorted fastest-first — exact times from logged mile splits
+      };
+      const lifting = {};
+      PR_LIFT_EXERCISES.forEach(ex => { lifting[ex] = null; }); // { weight, reps, e1rm, date }
+
+      Object.keys(entriesCache).forEach(date => {
+        const e = entriesCache[date];
+        if (!e) return;
+        if (isPacedRun(e.kind) && e.miles > 0) {
+          running.longestRuns.push({ miles: e.miles, date, timeSeconds: e.timeSeconds || 0 });
+        }
+        if (isPacedRun(e.kind) && e.miles > 0 && e.timeSeconds > 0) {
+          RACE_DISTANCES.forEach(d => {
+            if (e.miles < d.miles) return; // never extrapolate a PR beyond a distance actually run
+            if (d.miles < e.miles * 0.5) return; // Riegel gets unreliable extrapolating too far below the source distance
+            const predicted = riegelPredict(e.timeSeconds, e.miles, d.miles);
+            if (!running.byDistance[d.label]) running.byDistance[d.label] = [];
+            // One prediction per date per distance (a date has at most one run entry).
+            running.byDistance[d.label].push({
+              predicted, date, sourceMiles: e.miles, sourceTimeSeconds: e.timeSeconds
+            });
+          });
+        }
+        // Real times from logged mile splits take priority over Riegel predictions.
+        if (e.splits && e.splits.length) {
+          RACE_DISTANCES.forEach(d => {
+            if (!Number.isInteger(d.miles) || d.miles > e.splits.length) return;
+            let best = Infinity;
+            for (let i = 0; i + d.miles <= e.splits.length; i++) {
+              const sum = e.splits.slice(i, i + d.miles).reduce((a, b) => a + b, 0);
+              if (sum < best) best = sum;
+            }
+            if (best < Infinity) {
+              if (!running.splitBests[d.label]) running.splitBests[d.label] = [];
+              running.splitBests[d.label].push({ seconds: best, date });
+            }
+          });
+        }
+        if ((e.kind === 'lift' || e.kind === 'hybrid') && e.exercises) {
+          Object.keys(e.exercises).forEach(ex => {
+            if (!PR_LIFT_EXERCISES.includes(ex)) return;
+            (e.exercises[ex] || []).forEach(set => {
+              const weight = parseFloat(set.weight) || 0;
+              const reps = parseInt(set.reps, 10) || 0;
+              if (weight <= 0 || reps <= 0) return;
+              const e1rm = estimate1RM(weight, reps);
+              const cur = lifting[ex];
+              if (!cur || e1rm > cur.e1rm) {
+                lifting[ex] = { weight, reps, e1rm, date };
+              }
+            });
+          });
+        }
+      });
+
+      running.longestRuns.sort((a, b) => b.miles - a.miles);
+      running.longestRuns = running.longestRuns.slice(0, 3);
+
+      Object.keys(running.byDistance).forEach(label => {
+        running.byDistance[label].sort((a, b) => a.predicted - b.predicted);
+      });
+      Object.keys(running.splitBests).forEach(label => {
+        running.splitBests[label].sort((a, b) => a.seconds - b.seconds);
+      });
+
+      return { running, lifting };
+    }
+
+    function renderPRs() {
+      const { running, lifting } = computePRs();
+
+      const runCards = [];
+      const longest = running.longestRuns[0];
+      const longestPace = (longest && longest.timeSeconds > 0) ? formatPace(longest.timeSeconds / longest.miles) : null;
+      const longestMeta = longest
+        ? (longestPace ? `${longestPace} &middot; ${fmtDateShort(longest.date)}` : fmtDateShort(longest.date))
+        : 'No runs logged yet';
+      const longestExtras = running.longestRuns.slice(1, 3).map(r => {
+        const pace = r.timeSeconds > 0 ? formatPace(r.timeSeconds / r.miles) : null;
+        return {
+          time: `${r.miles} mi`,
+          date: pace ? `${pace} &middot; ${fmtDateShort(r.date)}` : fmtDateShort(r.date),
+        };
+      });
+      runCards.push(prCardHTML('run', 'Longest Run', longest
+        ? `${longest.miles} mi` : null, longestMeta, longestExtras));
+      RACE_DISTANCES.forEach(d => {
+        // Exact times from logged mile splits take priority over Riegel predictions.
+        const splitRecs = running.splitBests[d.label] || [];
+        if (splitRecs.length) {
+          const rec = splitRecs[0];
+          const meta = `${formatPace(rec.seconds / d.miles)} &middot; ${fmtDateShort(rec.date)}`;
+          const extras = splitRecs.slice(1, 3).map(r => ({
+            time: formatTime(r.seconds),
+            date: fmtDateShort(r.date),
+          }));
+          runCards.push(prCardHTML('run', d.label, formatTime(rec.seconds), meta, extras));
+          return;
+        }
+
+        const recs = running.byDistance[d.label] || [];
+        const rec = recs[0];
+        const isExact = rec && Math.abs(rec.sourceMiles - d.miles) <= 0.05;
+        const pace = rec ? formatPace(rec.predicted / d.miles) : '';
+        const meta = rec
+          ? (isExact
+            ? `${pace} &middot; ${fmtDateShort(rec.date)}`
+            : `predicted from ${rec.sourceMiles} mi &middot; ${pace} &middot; ${fmtDateShort(rec.date)}`)
+          : 'Not logged yet';
+        const extras = recs.slice(1, 3).map(r => ({
+          time: formatTime(r.predicted),
+          date: fmtDateShort(r.date),
+        }));
+        runCards.push(prCardHTML('run', d.label, rec ? formatTime(rec.predicted) : null, meta, extras));
+      });
+      document.getElementById('prRunGrid').innerHTML = runCards.join('');
+
+      const liftCards = PR_LIFT_EXERCISES.map(ex => {
+        const rec = lifting[ex];
+        return prCardHTML('lift', ex, rec ? `${rec.weight} lb &times; ${rec.reps}` : null,
+          rec ? `est. 1RM ${Math.round(rec.e1rm)} lb &middot; ${fmtDateShort(rec.date)}` : 'Not logged yet');
+      });
+      document.getElementById('prLiftGrid').innerHTML = liftCards.join('');
+    }
+
+    function prCardHTML(kind, label, value, meta, extras) {
+      const empty = value === null;
+      const extrasHTML = (extras && extras.length)
+        ? `<div class="pr-card-extras">${extras.map((ex, i) => `
+        <div class="pr-card-extra-row">
+          <span class="pr-card-extra-rank">${i === 0 ? '2nd' : '3rd'}</span>
+          <span class="pr-card-extra-time">${ex.time}</span>
+          <span class="pr-card-extra-date">${ex.date}</span>
+        </div>`).join('')}</div>`
+        : '';
+      return `
+    <div class="pr-card ${kind}${empty ? ' empty' : ''}">
+      <div class="pr-card-label">${label}</div>
+      <div class="pr-card-value">${empty ? '&mdash;' : value}</div>
+      <div class="pr-card-meta">${meta}</div>
+      ${extrasHTML}
+    </div>`;
+    }
+
+    function updatePaceDisplay(date) {
+      const el = document.getElementById('paceDisplay-' + date);
+      if (!el) return;
+      const totalSeconds = computeTimeSeconds(date);
+      const miles = readNum('miles-' + date);
+      el.textContent = 'Pace: ' + ((miles > 0 && totalSeconds > 0) ? formatPace(totalSeconds / miles) : '--:-- /mi');
+    }
+
+    function removeSetRow(rid) {
+      const el = document.getElementById(rid);
+      if (el) el.remove();
+    }
+
+    function addSetRow(date, exercise) {
+      const container = document.getElementById(`sets-${date}-${exercise}`);
+      if (!container) return;
+      const idx = container.children.length;
+      let lastWeight = 0;
+      const last = container.lastElementChild;
+      if (last) {
+        const wInput = last.querySelector('input[id$="-w"]');
+        if (wInput) lastWeight = parseInt(wInput.value, 10) || 0;
+      }
+      container.insertAdjacentHTML('beforeend', setRowHTML(date, exercise, idx, lastWeight, 5));
+    }
+
+    function escapeHTML(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function planEditHTML(entry) {
+      const badge = entry.modified
+        ? ' <span style="color: var(--amber); text-transform: none; letter-spacing: 0;">(customized \u2014 won\u2019t be touched by plan_seed updates)</span>'
+        : '';
+      const resetBtn = entry.modified
+        ? `<button type="button" class="save-btn plan-save-btn" style="background: var(--surface-2); color: var(--muted); border: 1px solid var(--line);" onclick="resetPlanDay('${entry.date}')">&#8634; Reset to plan_seed default</button>`
+        : '';
+      return `
+    <div class="plan-edit-toggle" onclick="togglePlanEdit('${entry.date}')">&#9998; Edit planned workout${badge}</div>
+    <div class="plan-edit-panel" id="planEdit-${entry.date}">
+      <div class="field">
+        <label>Activity</label>
+        <input type="text" id="planActivity-${entry.date}" value="${escapeHTML(entry.activity)}">
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>Planned Miles</label>
+          <input type="number" step="0.1" id="planMiles-${entry.date}" value="${entry.miles || 0}">
+        </div>
+        <div class="field">
+          <label>Target Pace</label>
+          <input type="text" id="planPace-${entry.date}" value="${escapeHTML(entry.pace || '')}">
+        </div>
+      </div>
+      <button class="save-btn plan-save-btn" onclick="savePlanEdit('${entry.date}')">Save Plan Changes</button>
+      ${resetBtn}
+      <div class="saved-note" id="planSaved-${entry.date}">Saved</div>
+    </div>
+  `;
+    }
+
+    function togglePlanEdit(date) {
+      const panel = document.getElementById('planEdit-' + date);
+      if (panel) panel.classList.toggle('open');
+    }
+
+    function updateLocalPlanEntry(date, fields) {
+      const planEntry = PLAN.find(p => p.date === date);
+      if (planEntry) Object.assign(planEntry, fields);
+      const weekEntry = WEEKS[weekIdx]?.days.find(d => d.date === date);
+      if (weekEntry) Object.assign(weekEntry, fields);
+    }
+
+    async function savePlanEdit(date) {
+      const activity = document.getElementById('planActivity-' + date)?.value.trim();
+      const miles = readNum('planMiles-' + date);
+      const pace = document.getElementById('planPace-' + date)?.value.trim() || null;
+      if (!activity) return;
+      try {
+        await apiFetch('/api/plan/' + encodeURIComponent(date), { method: 'POST', body: { activity, miles, pace } });
+        updateLocalPlanEntry(date, { activity, miles, pace, modified: true });
+        showSaved('planSaved-' + date);
+        renderWeek();
+      } catch (e) {
+        console.error('plan save failed', e);
+      }
+    }
+
+    async function resetPlanDay(date) {
+      if (!confirm('Reset ' + fmtDateShort(date) + ' back to the plan_seed default? Your customization will be discarded.')) return;
+      try {
+        await apiFetch('/api/plan/' + encodeURIComponent(date) + '/reset', { method: 'POST' });
+        // Pull the restored seed values back from the server.
+        const freshPlan = await apiFetch('/api/plan');
+        const restored = freshPlan.find(p => p.date === date);
+        if (restored) updateLocalPlanEntry(date, restored);
+        renderWeek();
+      } catch (e) {
+        console.error('plan reset failed', e);
+      }
+    }
+
+    function splitRowHTML(date, idx, seconds) {
+      const rid = `split-${date}-${idx}`;
+      const min = Math.floor(seconds / 60);
+      const sec = Math.round(seconds % 60);
+      return stepperRowHTML({
+        rid,
+        label: `Mi ${idx + 1}`,
+        fields: [
+          { suffix: 'min', value: min, unit: 'min', variant: 'time' },
+          { suffix: 'sec', value: sec, unit: 'sec', variant: 'time', max: 59 },
+        ],
+      });
+    }
+
+    function addSplitRow(date) {
+      const container = document.getElementById('splits-' + date);
+      if (!container) return;
+      const idx = container.children.length;
+      container.insertAdjacentHTML('beforeend', splitRowHTML(date, idx, 0));
+    }
+
+    function readSplits(date) {
+      return readRowInputs('splits-' + date, [
+        { key: 'min', suffix: 'min' },
+        { key: 'sec', suffix: 'sec' },
+      ]).map(({ min, sec }) => min * 60 + sec).filter(s => s > 0);
+    }
+
+    function runFieldsHTML(entry, log) {
+      const totalSeconds = log.timeSeconds || 0;
+      const h = Math.floor(totalSeconds / 3600);
+      const m = Math.floor((totalSeconds % 3600) / 60);
+      const s = totalSeconds % 60;
+      const initialMiles = log.miles ?? 0;
+      const initialPaceText = (initialMiles > 0 && totalSeconds > 0) ? formatPace(totalSeconds / initialMiles) : '--:-- /mi';
+      const splits = log.splits || [];
+      const splitRows = splits.map((sec, i) => splitRowHTML(entry.date, i, sec)).join('');
+      return `
+    <div class="field">
+      <label>Actual Miles</label>
+      <input type="number" step="0.01" id="miles-${entry.date}" value="${log.miles ?? ''}" placeholder="${plannedMilesFor(entry)}" oninput="updatePaceDisplay('${entry.date}')">
+    </div>
+    <div class="field">
+      <label>Total Time</label>
+      <div class="time-steppers">
+        <div class="stepper time-stepper">
+          <input type="number" id="time-${entry.date}-h" value="${h}" inputmode="numeric" min="0" oninput="updatePaceDisplay('${entry.date}')">
+          <span class="stepper-unit">hr</span>
+        </div>
+        <div class="stepper time-stepper">
+          <input type="number" id="time-${entry.date}-m" value="${m}" inputmode="numeric" min="0" max="59" oninput="updatePaceDisplay('${entry.date}')">
+          <span class="stepper-unit">min</span>
+        </div>
+        <div class="stepper time-stepper">
+          <input type="number" id="time-${entry.date}-s" value="${s}" inputmode="numeric" min="0" max="59" oninput="updatePaceDisplay('${entry.date}')">
+          <span class="stepper-unit">sec</span>
+        </div>
+      </div>
+    </div>
+    <div class="pace-display" id="paceDisplay-${entry.date}">Pace: ${initialPaceText}</div>
+    <div class="exercise-block">
+      <div class="exercise-title">Mile Splits (optional)</div>
+      <div id="splits-${entry.date}">${splitRows}</div>
+      <button type="button" class="add-set-btn" onclick="addSplitRow('${entry.date}')">+ Add Split</button>
+    </div>
+  `;
+    }
+
+    function liftBlocksHTML(entry, log) {
+      const exercises = exercisesForActivity(entry.activity);
+      const savedExercises = log.exercises || {};
+      const prevDate = isoDateAddDays(entry.date, -7);
+      const prevExercises = (entriesCache[prevDate] || {}).exercises || {};
+      const hasPrevData = exercises.some(ex => (prevExercises[ex] || []).length);
+      const copyBtn = hasPrevData
+        ? `<button type="button" class="add-set-btn" onclick="copyLastWeekLift('${entry.date}')">&#8635; Copy Last Week</button>`
+        : '';
+      const blocks = exercises.map(ex => {
+        const sets = (savedExercises[ex] && savedExercises[ex].length) ? savedExercises[ex] : [{ weight: '', reps: '' }];
+        const rows = sets.map((s, i) => setRowHTML(entry.date, ex, i, s.weight ?? '', s.reps ?? '')).join('');
+        return `
+      <div class="exercise-block">
+        <div class="exercise-title">${ex}</div>
+        <div id="sets-${entry.date}-${ex}">${rows}</div>
+        <button type="button" class="add-set-btn" onclick="addSetRow('${entry.date}', '${ex}')">+ Add Set</button>
+      </div>`;
+      }).join('');
+      return copyBtn + blocks;
+    }
+
+    // Fills lift inputs with the same date-minus-7-days entry's weights/reps, without saving.
+    function copyLastWeekLift(date) {
+      const entry = findPlanEntry(date);
+      if (!entry) return;
+      const prevDate = isoDateAddDays(date, -7);
+      const prevExercises = (entriesCache[prevDate] || {}).exercises || {};
+      exercisesForActivity(entry.activity).forEach(ex => {
+        const prevSets = prevExercises[ex];
+        if (!prevSets || !prevSets.length) return;
+        const container = document.getElementById(`sets-${date}-${ex}`);
+        if (!container) return;
+        container.innerHTML = prevSets.map((s, i) => setRowHTML(date, ex, i, s.weight ?? '', s.reps ?? '')).join('');
+      });
+    }
+
+    function repRowHTML(date, idx, meters, seconds) {
+      const rid = `rep-${date}-${idx}`;
+      const min = Math.floor(seconds / 60);
+      const sec = Math.round(seconds % 60);
+      const oninput = `updateIntervalTotals('${date}')`;
+      return stepperRowHTML({
+        rid,
+        label: `Rep ${idx + 1}`,
+        fields: [
+          { suffix: 'm', value: meters, unit: 'm', variant: 'distance', oninput },
+          { suffix: 'min', value: min, unit: 'min', variant: 'time', oninput },
+          { suffix: 'sec', value: sec, unit: 'sec', variant: 'time', max: 59, oninput },
+        ],
+        onRemoveExtra: `; ${oninput}`,
+      });
+    }
+
+    function addRepRow(date) {
+      const container = document.getElementById('reps-' + date);
+      if (!container) return;
+      const idx = container.children.length;
+      let lastMeters = 400, lastSeconds = 90;
+      const last = container.lastElementChild;
+      if (last) {
+        const mInput = last.querySelector('input[id$="-m"]');
+        const minInput = last.querySelector('input[id$="-min"]');
+        const secInput = last.querySelector('input[id$="-sec"]');
+        if (mInput) lastMeters = parseInt(mInput.value, 10) || 400;
+        if (minInput || secInput) {
+          const min = parseInt(minInput?.value, 10) || 0;
+          const sec = parseInt(secInput?.value, 10) || 0;
+          lastSeconds = min * 60 + sec;
+        }
+      }
+      container.insertAdjacentHTML('beforeend', repRowHTML(date, idx, lastMeters, lastSeconds));
+      updateIntervalTotals(date);
+    }
+
+    // Shared reader for stepper-row containers: pulls each input[id$="-<suffix>"], skips all-empty rows.
+    function readRowInputs(containerId, fields) {
+      const container = document.getElementById(containerId);
+      const rows = [];
+      if (container) {
+        Array.from(container.children).forEach(row => {
+          const values = {};
+          let anySet = false;
+          fields.forEach(({ key, suffix, parse = parseFloat }) => {
+            const input = row.querySelector(`input[id$="-${suffix}"]`);
+            const value = input ? (parse(input.value) || 0) : 0;
+            values[key] = value;
+            if (value) anySet = true;
+          });
+          if (anySet) rows.push(values);
+        });
+      }
+      return rows;
+    }
+
+    function readReps(date) {
+      const rows = readRowInputs('reps-' + date, [
+        { key: 'meters', suffix: 'm' },
+        { key: 'min', suffix: 'min' },
+        { key: 'sec', suffix: 'sec' },
+      ]);
+      return rows.map(({ meters, min, sec }) => ({ meters, seconds: min * 60 + sec }));
+    }
+
+    // Reads the current interval-day form inputs and derives warmup/cooldown/rep totals.
+    function readIntervalTotals(date) {
+      const warmupMiles = readNum('warmupMiles-' + date);
+      const cooldownMiles = readNum('cooldownMiles-' + date);
+      const reps = readReps(date);
+      const repMiles = reps.reduce((sum, r) => sum + r.meters / METERS_PER_MILE, 0);
+      const repSeconds = reps.reduce((sum, r) => sum + r.seconds, 0);
+      return { warmupMiles, cooldownMiles, reps, repMiles, repSeconds, totalMiles: warmupMiles + repMiles + cooldownMiles };
+    }
+
+    function updateIntervalTotals(date) {
+      const el = document.getElementById('intervalTotals-' + date);
+      if (!el) return;
+      const { reps, repSeconds, totalMiles } = readIntervalTotals(date);
+      el.textContent = `Total: ${totalMiles.toFixed(2)} mi \u00b7 ${reps.length} reps \u00b7 ${formatTime(repSeconds)} rep time`;
+    }
+
+    // Parses "10x400m Repeats" or "10x0.25mi Repeats" style titles into { count, meters }; falls back to 8x400m.
+    function parseIntervalTitle(activity) {
+      const m = activity.match(INTERVAL_TITLE_RE);
+      if (!m) return { count: 8, meters: 400 };
+      const count = parseInt(m[1], 10);
+      const rawDist = parseFloat(m[2]);
+      const isMiles = /^mi/i.test(m[3]);
+      const meters = Math.round(isMiles ? rawDist * METERS_PER_MILE : rawDist);
+      return { count, meters };
+    }
+
+    // Estimated total distance (warm-up + reps + cooldown) for an interval day with nothing logged yet.
+    function defaultIntervalMiles(activity) {
+      const { count, meters } = parseIntervalTitle(activity);
+      const repMiles = count * meters / METERS_PER_MILE;
+      return Math.round((0.5 + repMiles) * 100) / 100;
+    }
+
+    // Parses a tempo title's workout distance, e.g. "5k Tempo" -> 5 (km) or "3mi Tempo" -> 3 (mi). Null if not found.
+    function parseTempoDistance(activity) {
+      const m = activity.match(/(\d*\.?\d+)\s*(k|km|mi|mile|miles)\b/i);
+      if (!m) return null;
+      const val = parseFloat(m[1]);
+      const unit = m[2].toLowerCase();
+      return unit.startsWith('mi') ? val : val * 0.621371;
+    }
+
+    // Estimated total distance (0.5mi warm-up + workout + 0.5mi cooldown) for a tempo day with nothing logged yet.
+    function defaultTempoMiles(activity) {
+      const workoutMiles = parseTempoDistance(activity);
+      return workoutMiles === null ? null : Math.round((workoutMiles + 1.0) * 100) / 100;
+    }
+
+    // Planned distance for a day: static plan value, except intervals/tempo use a dynamic estimate.
+    function plannedMilesFor(entry, kind = activityKind(entry.activity)) {
+      if (kind === 'intervals') return defaultIntervalMiles(entry.activity);
+      if (kind === 'tempo') return defaultTempoMiles(entry.activity) ?? (entry.miles || 0);
+      return entry.miles || 0;
+    }
+
+    // Kinds with a straightforward pace (distance run at a steady effort) usable for PRs/predictions.
+    function isPacedRun(kind) {
+      return kind === 'run' || kind === 'tempo' || kind === 'race' || kind === 'hybrid';
+    }
+
+    // Looks up a rep-interval target time from the pace guide, scaling to the given rep distance
+    // if only a different rep distance (e.g. 400m) has a guide entry. Null if no rep paces exist.
+    function repPaceSecondsFor(meters) {
+      const repPaces = (PACE_GUIDE.paces || []).filter(p => p.unit === 'rep' && p.unit_meters > 0);
+      if (!repPaces.length) return null;
+      const closest = repPaces.reduce((best, p) =>
+        Math.abs(p.unit_meters - meters) < Math.abs(best.unit_meters - meters) ? p : best
+      );
+      const lowClock = closest.pace.split('\u2013')[0].trim();
+      const secondsAtClosest = paceClockToMinutes(lowClock) * 60;
+      return secondsAtClosest * (meters / closest.unit_meters);
+    }
+
+    function intervalFieldsHTML(entry, log) {
+      const { count, meters } = parseIntervalTitle(entry.activity);
+      // Prefer the pace guide's rep pace for this distance; fall back to a ~6:00/mi effort (90s/400m).
+      const guideSeconds = repPaceSecondsFor(meters);
+      const defaultSeconds = Math.round(guideSeconds ?? 90 * (meters / 400));
+      const defaultReps = Array.from({ length: count }, () => ({ meters, seconds: defaultSeconds }));
+      const reps = (log.reps && log.reps.length) ? log.reps : defaultReps;
+      const repRows = reps.map((r, i) => repRowHTML(entry.date, i, r.meters, r.seconds)).join('');
+      const cooldownMiles = log.cooldown?.miles ?? 0;
+      const warmupMiles = log.warmup?.miles ?? 0.5;
+      return `
+    <div class="field">
+      <label>Warm-up (mi)</label>
+      <input type="number" step="0.01" id="warmupMiles-${entry.date}" value="${warmupMiles}" oninput="updateIntervalTotals('${entry.date}')">
+    </div>
+    <div class="exercise-block">
+      <div class="exercise-title">Repeats</div>
+      <div id="reps-${entry.date}">${repRows}</div>
+      <button type="button" class="add-set-btn" onclick="addRepRow('${entry.date}')">+ Add Rep</button>
+    </div>
+    <div class="field">
+      <label>Cooldown (mi)</label>
+      <input type="number" step="0.01" id="cooldownMiles-${entry.date}" value="${cooldownMiles}" oninput="updateIntervalTotals('${entry.date}')">
+    </div>
+    <div class="pace-display" id="intervalTotals-${entry.date}">Total: -- mi</div>
+  `;
+    }
+
+    function saveControlsHTML(date, kind, logged) {
+      const clearBtn = logged
+        ? `<button type="button" class="save-btn" style="background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); margin-top: 8px;" onclick="doClear('${date}')">Clear Logged Entry</button>`
+        : '';
+      return `
+      <button class="save-btn" onclick="doSave('${date}', '${kind}')">Save</button>
+      <div class="saved-note" id="saved-${date}">Saved</div>
+      ${clearBtn}`;
+    }
+
+    function logFieldsHTML(entry, logged) {
+      const kind = activityKind(entry.activity);
+      const log = logged || {};
+      let fields = '';
+
+      if (kind === 'lift') {
+        fields = liftBlocksHTML(entry, log);
+      } else if (kind === 'intervals') {
+        fields = intervalFieldsHTML(entry, log);
+      } else if (kind === 'hybrid') {
+        fields = `
+      <div class="run-section-title">Run</div>
+      ${runFieldsHTML(entry, log)}
+      <div class="run-section-title" style="color: var(--lift);">Lift</div>
+      ${liftBlocksHTML(entry, log)}`;
+      } else if (kind !== 'rest' && kind !== 'walk') {
+        fields = runFieldsHTML(entry, log);
+      }
+
+      return fields + saveControlsHTML(entry.date, kind, logged);
+    }
+
+    function toggleDay(date) {
+      const bodyEl = document.getElementById('body-' + date);
+      const chev = document.getElementById('chev-' + date);
+      const isOpen = bodyEl.classList.contains('open');
+      // close all
+      document.querySelectorAll('.day-body.open').forEach(el => el.classList.remove('open'));
+      document.querySelectorAll('.chevron.open').forEach(el => el.classList.remove('open'));
+      if (isOpen) return;
+      const entry = findPlanEntry(date);
+      const logged = entriesCache[date] ?? null;
+      bodyEl.innerHTML = planEditHTML(entry) + logFieldsHTML(entry, logged);
+      bodyEl.classList.add('open');
+      chev.classList.add('open');
+      if (activityKind(entry.activity) === 'intervals') updateIntervalTotals(date);
+    }
+
+    async function doSave(date, kind) {
+      let data = { kind };
+      if (kind === 'lift' || kind === 'hybrid') {
+        const entry = findPlanEntry(date);
+        const exercises = exercisesForActivity(entry ? entry.activity : '');
+        const exData = {};
+        exercises.forEach(ex => {
+          exData[ex] = readRowInputs(`sets-${date}-${ex}`, [
+            { key: 'weight', suffix: 'w', parse: parseFloat },
+            { key: 'reps', suffix: 'r', parse: v => parseInt(v, 10) },
+          ]);
+        });
+        data.exercises = exData;
+      }
+      if (isPacedRun(kind)) {
+        const miles = readNum('miles-' + date);
+        const totalSeconds = computeTimeSeconds(date);
+        if (miles <= 0 || totalSeconds <= 0) {
+          alert('Enter both a distance and a time before saving a run.');
+          return;
+        }
+        data.miles = miles;
+        data.timeSeconds = totalSeconds;
+        data.pace = formatPace(totalSeconds / miles);
+        const splits = readSplits(date);
+        if (splits.length) data.splits = splits;
+      }
+      if (kind === 'intervals') {
+        const { warmupMiles, cooldownMiles, reps, repSeconds, totalMiles } = readIntervalTotals(date);
+        data.warmup = { miles: warmupMiles };
+        data.cooldown = { miles: cooldownMiles };
+        data.reps = reps;
+        data.miles = Math.round(totalMiles * 100) / 100;
+        data.timeSeconds = repSeconds;
+      }
+      const ok = await saveEntry(date, data);
+      if (ok) {
+        showSaved('saved-' + date);
+        renderWeek();
+      }
+    }
+
+    async function doClear(date) {
+      if (!confirm('Clear the logged entry for ' + fmtDateShort(date) + '? This cannot be undone.')) return;
+      const ok = await deleteEntry(date);
+      if (ok) {
+        document.querySelectorAll('.day-body.open').forEach(el => el.classList.remove('open'));
+        document.querySelectorAll('.chevron.open').forEach(el => el.classList.remove('open'));
+        renderWeek();
+      } else {
+        alert('Could not clear that entry — check the console for details.');
+      }
+    }
+
+    function renderWeek() {
+      const wk = WEEKS[weekIdx];
+      document.getElementById('weekDates').textContent = fmtDateRange(wk.days[0].date, wk.days[wk.days.length - 1].date);
+      document.getElementById('prevBtn').disabled = weekIdx === 0;
+      document.getElementById('nextBtn').disabled = weekIdx === WEEKS.length - 1;
+
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const wkFirst = toLocalDate(wk.days[0].date);
+      const wkLast = toLocalDate(wk.days[wk.days.length - 1].date);
+      document.querySelector('#logView .week-nav').classList.toggle('current-week', today >= wkFirst && today <= wkLast);
+
+      const listEl = document.getElementById('dayList');
+      listEl.innerHTML = wk.days.map(e => dayCardHTML(e, entriesCache[e.date] ?? null)).join('');
+
+      let plannedTotal = 0;
+      let loggedTotal = 0;
+      wk.days.forEach(e => {
+        const k = activityKind(e.activity);
+        if (countsAsMileage(k)) {
+          plannedTotal += plannedMilesFor(e, k);
+        }
+        const logged = entriesCache[e.date] ?? null;
+        if (logged && countsAsMileage(logged.kind) && logged.miles) loggedTotal += logged.miles;
+      });
+      document.getElementById('plannedMiles').textContent = plannedTotal.toFixed(2) + ' mi';
+      document.getElementById('loggedMiles').textContent = loggedTotal.toFixed(2) + ' mi';
+    }
+
+    function changeWeek(dir) {
+      const newIdx = weekIdx + dir;
+      if (newIdx < 0 || newIdx >= WEEKS.length) return;
+      weekIdx = newIdx;
+      renderWeek();
+    }
+
+    async function copyToClipboard(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        try {
+          await navigator.clipboard.writeText(text);
+          return true;
+        } catch (e) { /* fall through to legacy fallback */ }
+      }
+      // Fallback for plain HTTP (Clipboard API needs a secure context).
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        const ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        return ok;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function describeLoggedEntry(entry, logged) {
+      const kind = activityKind(entry.activity);
+      const lines = [];
+      if (!logged) {
+        lines.push('  Not logged');
+        return lines;
+      }
+      if (kind === 'rest') {
+        lines.push('  Rest');
+        return lines;
+      }
+      if (kind === 'intervals') {
+        if (logged.reps && logged.reps.length) {
+          const repsStr = logged.reps.map(r => `${r.meters}m/${formatTime(r.seconds)}`).join(', ');
+          lines.push(`  ${logged.reps.length} reps: ${repsStr}`);
+        }
+        if (logged.miles) lines.push(`  Total distance: ${logged.miles} mi (incl. warm-up/cooldown)`);
+      }
+      if (kind === 'lift' || kind === 'hybrid') {
+        if (logged.exercises) {
+          Object.entries(logged.exercises).forEach(([ex, sets]) => {
+            if (!sets || !sets.length) return;
+            const setsStr = sets.map(s => `${s.weight}x${s.reps}`).join(', ');
+            lines.push(`  ${ex}: ${setsStr}`);
+          });
+        }
+      }
+      if (isPacedRun(kind)) {
+        if (logged.miles) {
+          const timeStr = logged.timeSeconds ? formatTime(logged.timeSeconds) : '';
+          lines.push(`  Ran ${logged.miles} mi${timeStr ? ` in ${timeStr}` : ''}${logged.pace ? ` (${logged.pace})` : ''}`);
+        }
+      }
+      if (lines.length === 0) {
+        lines.push('  Logged (no details)');
+      }
+      return lines;
+    }
+
+    // Summarizes the last 4 weeks ending at the currently-viewed week (weekIdx).
+    async function exportWeekSummary() {
+      const startIdx = Math.max(0, weekIdx - 3);
+      const weeks = WEEKS.slice(startIdx, weekIdx + 1);
+      const lines = [];
+
+      let grandPlanned = 0;
+      let grandLogged = 0;
+
+      weeks.forEach(wk => {
+        lines.push(`— ${fmtDateRange(wk.days[0].date, wk.days[wk.days.length - 1].date)} —`);
+        lines.push('');
+
+        let plannedTotal = 0;
+        let loggedTotal = 0;
+
+        for (const e of wk.days) {
+          const logged = entriesCache[e.date] ?? null;
+          const kind = activityKind(e.activity);
+          if (countsAsMileage(kind)) plannedTotal += plannedMilesFor(e, kind);
+          if (logged && countsAsMileage(logged.kind) && logged.miles) loggedTotal += logged.miles;
+
+          const plannedMilesLabel = (kind === 'intervals' || kind === 'tempo') ? plannedMilesFor(e, kind) : e.miles;
+          lines.push(`${dayAbbrev(e.date)} ${fmtDate(e.date)} — Planned: ${e.activity}${plannedMilesLabel ? ` (${plannedMilesLabel} mi)` : ''}`);
+          lines.push(...describeLoggedEntry(e, logged));
+          lines.push('');
+        }
+
+        lines.push(`Planned: ${plannedTotal.toFixed(2)} mi · Logged: ${loggedTotal.toFixed(2)} mi`);
+        lines.push('');
+        grandPlanned += plannedTotal;
+        grandLogged += loggedTotal;
+      });
+
+      if (weeks.length > 1) {
+        lines.push(`${weeks.length}-Week Total — Planned: ${grandPlanned.toFixed(2)} mi · Logged: ${grandLogged.toFixed(2)} mi`);
+      }
+
+      const text = lines.join('\n');
+      const ok = await copyToClipboard(text);
+      const el = document.getElementById('exportSaved');
+      if (ok) {
+        el.textContent = 'Copied to clipboard!';
+      } else {
+        window.prompt('Copy failed — select and copy this manually:', text);
+        el.textContent = 'Copy failed, see prompt';
+      }
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 2200);
+    }
+
+    let WEIGHT_ENTRIES = [];
+
+    function todayISO() {
+      return formatISODate(new Date());
+    }
+
+    async function loadWeightEntries() {
+      try {
+        WEIGHT_ENTRIES = await apiFetch('/api/weight'); // sorted by date ascending
+      } catch (e) {
+        console.error('weight load failed', e);
+        WEIGHT_ENTRIES = [];
+      }
+    }
+
+    function closestWeightOnOrBefore(dateStr) {
+      let best = null;
+      for (const w of WEIGHT_ENTRIES) {
+        if (w.date <= dateStr && (!best || w.date > best.date)) best = w;
+      }
+      return best;
+    }
+
+    async function renderWeightTab() {
+      const dateInput = document.getElementById('weightDateInput');
+      if (!dateInput.value) dateInput.value = todayISO();
+
+      await loadWeightEntries();
+
+      const latest = WEIGHT_ENTRIES.length ? WEIGHT_ENTRIES[WEIGHT_ENTRIES.length - 1] : null;
+      document.getElementById('weightCurrent').textContent = latest ? `${latest.weight} lb` : '—';
+
+      const changeEl = document.getElementById('weightChange7');
+      if (latest) {
+        const refEntry = closestWeightOnOrBefore(isoDateAddDays(latest.date, -7));
+        if (refEntry) {
+          const delta = latest.weight - refEntry.weight;
+          const sign = delta > 0 ? '+' : '';
+          changeEl.textContent = `${sign}${delta.toFixed(1)} lb`;
+        } else {
+          changeEl.textContent = '—';
+        }
+      } else {
+        changeEl.textContent = '—';
+      }
+
+      // Prefill the form if there's already an entry for the selected date
+      const existing = WEIGHT_ENTRIES.find(w => w.date === dateInput.value);
+      document.getElementById('weightValueInput').value = existing ? existing.weight : '';
+
+      const historyEl = document.getElementById('weightHistory');
+      if (!WEIGHT_ENTRIES.length) {
+        historyEl.innerHTML = '<div class="empty-note">No weigh-ins logged yet</div>';
+        return;
+      }
+      const reversed = [...WEIGHT_ENTRIES].reverse();
+      historyEl.innerHTML = reversed.map((w, i) => {
+        const prev = reversed[i + 1];
+        let deltaStr = '';
+        if (prev) {
+          const delta = w.weight - prev.weight;
+          const sign = delta > 0 ? '+' : '';
+          deltaStr = `<span class="pace-ref">${sign}${delta.toFixed(1)} lb</span>`;
+        }
+        return `
+      <div class="pace-row">
+        <div>
+          <div class="pace-type">${fmtDateShort(w.date)}</div>
+          ${deltaStr}
+        </div>
+        <div class="pace-val">${w.weight} lb</div>
+      </div>`;
+      }).join('');
+    }
+
+    async function saveWeightEntry() {
+      const date = document.getElementById('weightDateInput').value;
+      const weight = parseFloat(document.getElementById('weightValueInput').value);
+      if (!date || !weight || weight <= 0 || weight > 200) return;
+      try {
+        await apiFetch('/api/weight/' + encodeURIComponent(date), { method: 'POST', body: { weight } });
+        showSaved('weightSaved');
+        await renderWeightTab();
+      } catch (e) {
+        console.error('weight save failed', e);
+      }
+    }
+
+    // ---- Stats tab ----
+    const charts = { mileage: null, lift: null, weight: null };
+
+    // Reads a live CSS custom property so chart colors stay in sync with :root.
+    function cssVar(name, fallback = '') {
+      const val = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      return val || fallback;
+    }
+
+    const CHART_COLORS = {
+      grid: 'rgba(138, 143, 152, 0.15)',
+      text: cssVar('--muted', '#8A8F98'),
+    };
+
+    function isoWeekStart(dateStr) {
+      const d = toLocalDate(dateStr);
+      // Shift so Monday (not Sunday) starts the week.
+      const offset = (d.getDay() + 6) % 7;
+      d.setDate(d.getDate() - offset);
+      return formatISODate(d);
+    }
+
+    function buildStatsData() {
+      const mileageByWeek = {}; // weekStart -> { total, byType: { label: miles } }
+      const planByDate = Object.fromEntries(PLAN.map(p => [p.date, p]));
+      const liftSeries = Object.fromEntries(PR_LIFT_EXERCISES.map(ex => [ex, []]));
+      let totalMiles = 0;
+      let totalWorkouts = 0;
+
+      Object.keys(entriesCache).sort().forEach(date => {
+        const e = entriesCache[date];
+        if (!e) return;
+        if (e.kind !== 'rest') totalWorkouts++;
+
+        if (countsAsMileage(e.kind) && e.miles > 0) {
+          totalMiles += e.miles;
+          const wk = isoWeekStart(date);
+          if (!mileageByWeek[wk]) mileageByWeek[wk] = { total: 0, byType: {} };
+          mileageByWeek[wk].total += e.miles;
+          const label = runTypeLabel(e.kind, planByDate[date]?.activity);
+          mileageByWeek[wk].byType[label] = (mileageByWeek[wk].byType[label] || 0) + e.miles;
+        }
+
+        if ((e.kind === 'lift' || e.kind === 'hybrid') && e.exercises) {
+          PR_LIFT_EXERCISES.forEach(ex => {
+            const sets = e.exercises[ex] || [];
+            let bestE1rm = 0;
+            sets.forEach(s => {
+              const weight = parseFloat(s.weight) || 0;
+              const reps = parseInt(s.reps, 10) || 0;
+              if (weight <= 0 || reps <= 0) return;
+              bestE1rm = Math.max(bestE1rm, estimate1RM(weight, reps));
+            });
+            if (bestE1rm > 0) liftSeries[ex].push({ date, e1rm: Math.round(bestE1rm) });
+          });
+        }
+      });
+
+      const weekLabels = Object.keys(mileageByWeek).sort();
+      const runTypes = [...new Set(weekLabels.flatMap(w => Object.keys(mileageByWeek[w].byType)))];
+      return {
+        mileage: {
+          labels: weekLabels.map(fmtDate),
+          values: weekLabels.map(w => Math.round(mileageByWeek[w].total * 10) / 10),
+          byType: runTypes.map(label => ({
+            label,
+            data: weekLabels.map(w => Math.round((mileageByWeek[w].byType[label] || 0) * 10) / 10),
+          })),
+        },
+        liftSeries,
+        weight: {
+          labels: WEIGHT_ENTRIES.map(w => fmtDate(w.date)),
+          values: WEIGHT_ENTRIES.map(w => w.weight),
+        },
+        totalMiles,
+        totalWorkouts,
+      };
+    }
+
+    function chartOptions({ legend = false, beginAtZero = false, stacked = false } = {}) {
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: legend
+            ? { display: true, labels: { color: CHART_COLORS.text, font: { size: 10 } } }
+            : { display: false },
+        },
+        scales: {
+          x: {
+            ticks: { color: CHART_COLORS.text, font: { size: 10 } },
+            grid: { display: false },
+            ...(stacked ? { stacked: true } : {}),
+          },
+          y: {
+            ticks: { color: CHART_COLORS.text, font: { size: 10 } },
+            grid: { color: CHART_COLORS.grid },
+            ...(beginAtZero ? { beginAtZero: true } : {}),
+            ...(stacked ? { stacked: true } : {}),
+          },
+        },
+      };
+    }
+
+    function horizontalLinePlugin(value, color) {
+      return {
+        id: 'horizontalLine',
+        afterDatasetsDraw(chart) {
+          if (value === null || value === undefined) return;
+          const { ctx, chartArea, scales } = chart;
+          const y = scales.y.getPixelForValue(value);
+          ctx.save();
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(chartArea.left, y);
+          ctx.lineTo(chartArea.right, y);
+          ctx.stroke();
+          ctx.restore();
+        },
+      };
+    }
+
+    function makeChart(name, canvasId, type, data, options = {}, chartPlugins = []) {
+      charts[name]?.destroy();
+      charts[name] = new Chart(document.getElementById(canvasId), {
+        type,
+        data,
+        options: chartOptions(options),
+        plugins: chartPlugins,
+      });
+    }
+
+    async function renderStatsTab() {
+      if (typeof Chart === 'undefined') {
+        document.getElementById('statsOverviewGrid').innerHTML =
+          '<div class="empty-note" style="grid-column: 1 / -1;">Charts failed to load (chart.umd.js missing or blocked). Check the browser console.</div>';
+        console.error('Chart.js is not loaded — check that /chart.umd.js is reachable.');
+        return;
+      }
+
+      await Promise.all([loadAllEntries(), loadWeightEntries()]);
+      renderStats();
+      renderPRs();
+    }
+
+    function renderStats() {
+      const { mileage, liftSeries, weight, totalMiles, totalWorkouts } = buildStatsData();
+      const avgWeekly = mileage.values.length
+        ? mileage.values.reduce((a, b) => a + b, 0) / mileage.values.length
+        : 0;
+
+      document.getElementById('statsOverviewGrid').innerHTML = [
+        prCardHTML('run', 'Total Miles Logged', totalMiles > 0 ? `${totalMiles.toFixed(1)} mi` : null, 'across all logged runs'),
+        prCardHTML('run', 'Avg Weekly Mileage', avgWeekly > 0 ? `${avgWeekly.toFixed(1)} mi` : null, 'per week with a logged run'),
+        prCardHTML('lift', 'Workouts Logged', totalWorkouts > 0 ? `${totalWorkouts}` : null, 'non-rest days logged'),
+        prCardHTML('lift', 'Current Weight', WEIGHT_ENTRIES.length ? `${WEIGHT_ENTRIES[WEIGHT_ENTRIES.length - 1].weight} lb` : null, 'most recent weigh-in'),
+      ].join('');
+
+      document.getElementById('mileageEmpty').style.display = mileage.values.length ? 'none' : 'block';
+      makeChart('mileage', 'mileageChart', 'bar', {
+        labels: mileage.labels,
+        datasets: mileage.byType.map(({ label, data }) => ({
+          label,
+          data,
+          backgroundColor: runTypeColor(label),
+          borderRadius: 4,
+        })),
+      }, { beginAtZero: true, stacked: true }, [horizontalLinePlugin(avgWeekly > 0 ? avgWeekly : null, cssVar('--amber', '#E8A33D'))]);
+
+      const liftHasData = Object.values(liftSeries).some(s => s.length > 0);
+      document.getElementById('liftEmpty').style.display = liftHasData ? 'none' : 'block';
+      // Reuse the same accent colors as the day-card types.
+      const liftColors = { Squat: cssVar('--lift', '#B07FE0'), Bench: cssVar('--intervals', '#E0678C'), Deadlift: cssVar('--race', '#E8A33D') };
+      const allLiftDates = [...new Set(Object.values(liftSeries).flat().map(p => p.date))].sort();
+      makeChart('lift', 'liftChart', 'line', {
+        labels: allLiftDates.map(fmtDate),
+        datasets: PR_LIFT_EXERCISES.filter(ex => liftSeries[ex].length).map(ex => {
+          const byDate = Object.fromEntries(liftSeries[ex].map(p => [p.date, p.e1rm]));
+          return {
+            label: ex,
+            data: allLiftDates.map(d => byDate[d] ?? null),
+            borderColor: liftColors[ex],
+            backgroundColor: liftColors[ex],
+            spanGaps: true,
+            tension: 0.25,
+          };
+        }),
+      }, { legend: true });
+
+      document.getElementById('weightChartEmpty').style.display = weight.values.length ? 'none' : 'block';
+      makeChart('weight', 'weightChart', 'line', {
+        labels: weight.labels,
+        datasets: [{ label: 'Weight (lb)', data: weight.values, borderColor: cssVar('--amber', '#E8A33D'), backgroundColor: cssVar('--amber', '#E8A33D'), tension: 0.25 }],
+      });
+
+      requestAnimationFrame(() => {
+        Object.values(charts).forEach(chart => chart?.resize());
+      });
+    }
+
+    async function loadPlan() {
+      try {
+        PLAN = await apiFetch('/api/plan');
+      } catch (e) {
+        console.error('plan load failed', e);
+        PLAN = [];
+      }
+      WEEKS = groupWeeks(PLAN);
+    }
+
+    async function init() {
+      await Promise.all([loadPlan(), loadAllEntries()]);
+      if (WEEKS.length === 0) {
+        document.getElementById('dayList').innerHTML = '<div class="empty-note">Could not load the workout plan. Is the backend running?</div>';
+        return;
+      }
+      weekIdx = findCurrentWeekIndex();
+      await Promise.all([loadPaceGuide(), loadRaceDistances()]);
+      renderPaceTable();
+      await renderWeek();
+    }
+    init();
+
+    // Registers the service worker for installability; no-op if unsupported.
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch((e) => {
+          console.warn('service worker registration failed', e);
+        });
+      });
+    }
+  </script>
+</body>
+
+</html>

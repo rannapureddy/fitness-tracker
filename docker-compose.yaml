@@ -1,0 +1,12 @@
+services:
+  running-tracker:
+    build: .
+    container_name: running-tracker
+    ports:
+      - "3001:5000"
+    volumes:
+      - ${CONFIG_ROOT}:/data
+    environment:
+      - DB_PATH=/data/tracker.db
+      - TZ=${TZ}
+    restart: unless-stopped

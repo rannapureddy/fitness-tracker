@@ -1,0 +1,158 @@
+{
+    "2026": {
+        "07": [
+            {
+                "day": 20,
+                "activity": "Rest"
+            },
+            {
+                "day": 21,
+                "activity": "Squat + Bench"
+            },
+            {
+                "day": 22,
+                "activity": "Rest"
+            },
+            {
+                "day": 23,
+                "activity": "Rest"
+            },
+            {
+                "day": 24,
+                "activity": "5K Run + Deadlift",
+                "miles": 3.1
+            },
+            {
+                "day": 25,
+                "activity": "Rest"
+            },
+            {
+                "day": 26,
+                "activity": "Long Run",
+                "miles": 5
+            },
+            {
+                "day": 27,
+                "activity": "Rest"
+            },
+            {
+                "day": 28,
+                "activity": "Rest"
+            },
+            {
+                "day": 29,
+                "activity": "Rest"
+            },
+            {
+                "day": 30,
+                "activity": "Rest"
+            },
+            {
+                "day": 31,
+                "activity": "Rest"
+            }
+        ],
+        "08": [
+            {
+                "day": 1,
+                "activity": "Rest"
+            },
+            {
+                "day": 2,
+                "activity": "Long Run",
+                "miles": 5.5
+            },
+            {
+                "day": 3,
+                "activity": "Rest"
+            },
+            {
+                "day": 4,
+                "activity": "Squat + Bench + Deadlift"
+            },
+            {
+                "day": 5,
+                "activity": "Rest"
+            },
+            {
+                "day": 6,
+                "activity": "Easy Run",
+                "miles": 3.1
+            },
+            {
+                "day": 7,
+                "activity": "8x400m Repeats",
+                "miles": 3.0
+            },
+            {
+                "day": 8,
+                "activity": "Rest"
+            },
+            {
+                "day": 9,
+                "activity": "Long Run",
+                "miles": 6.23
+            },
+            {
+                "day": 10,
+                "activity": "Rest"
+            },
+            {
+                "day": 11,
+                "activity": "Squat + Bench + Deadlift"
+            },
+            {
+                "day": 12,
+                "activity": "Rest"
+            },
+            {
+                "day": 13,
+                "activity": "Easy Run",
+                "miles": 3.1
+            },
+            {
+                "day": 14,
+                "activity": "10x400m Repeats",
+                "miles": 3.0
+            },
+            {
+                "day": 15,
+                "activity": "Rest"
+            },
+            {
+                "day": 16,
+                "activity": "Long Run",
+                "miles": 6.23
+            },
+            {
+                "day": 17,
+                "activity": "Squat + Bench + Deadlift"
+            },
+            {
+                "day": 18,
+                "activity": "Rest"
+            },
+            {
+                "day": 19,
+                "activity": "Incline Walk"
+            },
+            {
+                "day": 20,
+                "activity": "Incline Walk"
+            },
+            {
+                "day": 21,
+                "activity": "10x400m Repeats"
+            },
+            {
+                "day": 22,
+                "activity": "Rest"
+            },
+            {
+                "day": 23,
+                "activity": "Long Run",
+                "miles": 6.50
+            }
+        ]
+    }
+}

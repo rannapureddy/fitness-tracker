@@ -1,0 +1,119 @@
+{
+    "goal": {
+        "time": "1:44:00",
+        "race_name": "Half Marathon",
+        "race_date": "2027-04-11"
+    },
+    "prs": [
+        {
+            "id": "goal_half",
+            "distance": "Half Marathon",
+            "distance_meters": 21097.5,
+            "time": "1:44:00",
+            "status": "goal"
+        },
+        {
+            "id": "pr_5k",
+            "distance": "5K",
+            "distance_meters": 5000,
+            "time": "22:35",
+            "status": "actual"
+        },
+        {
+            "id": "pr_10k",
+            "distance": "10K",
+            "distance_meters": 10000,
+            "time": "47:05",
+            "status": "actual"
+        },
+        {
+            "id": "pr_15k",
+            "distance": "15K",
+            "distance_meters": 15000,
+            "time": "1:12:15",
+            "status": "actual"
+        }
+    ],
+    "paces": [
+        {
+            "type": "Goal Race Pace",
+            "unit": "mi",
+            "source": {
+                "pr_id": "goal_half",
+                "method": "time / (distance_meters / 1609.344)"
+            }
+        },
+        {
+            "type": "5K Pace",
+            "unit": "mi",
+            "source": {
+                "pr_id": "pr_5k",
+                "method": "time / (distance_meters / 1609.344)"
+            }
+        },
+        {
+            "type": "10K Pace",
+            "unit": "mi",
+            "source": {
+                "pr_id": "pr_10k",
+                "method": "time / (distance_meters / 1609.344)"
+            }
+        },
+        {
+            "type": "15K Race Effort",
+            "unit": "mi",
+            "source": {
+                "pr_id": "pr_15k",
+                "method": "time / (distance_meters / 1609.344)"
+            }
+        },
+        {
+            "type": "400m Repeats",
+            "unit": "rep",
+            "unit_meters": 400,
+            "source": {
+                "pr_id": "pr_5k",
+                "method": "time / (distance_meters / unit_meters)"
+            }
+        },
+        {
+            "type": "600m Repeats",
+            "unit": "rep",
+            "unit_meters": 600,
+            "source": {
+                "pr_id": "pr_5k",
+                "method": "time / (distance_meters / unit_meters)"
+            }
+        },
+        {
+            "type": "800m Repeats",
+            "unit": "rep",
+            "unit_meters": 800,
+            "source": {
+                "pr_id": "pr_5k",
+                "method": "time / (distance_meters / unit_meters)"
+            }
+        },
+        {
+            "type": "1000m Repeats",
+            "unit": "rep",
+            "unit_meters": 1000,
+            "source": {
+                "pr_id": "pr_5k",
+                "method": "time / (distance_meters / unit_meters)"
+            }
+        },
+        {
+            "type": "Tempo Runs",
+            "pace": "7:30",
+            "unit": "mi",
+            "manual": true
+        },
+        {
+            "type": "Easy & Long Runs",
+            "pace": "9:00",
+            "unit": "mi",
+            "manual": true
+        }
+    ]
+}

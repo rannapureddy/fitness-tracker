@@ -1144,7 +1144,7 @@
     const METERS_PER_MILE = 1609.34;
 
     // Matches interval titles like "10x400m Repeats" or "10x0.25mi Repeats" / "10x.25miles".
-    const INTERVAL_TITLE_RE = /(\d+)\s*[xX]\s*(\d*\.?\d+)\s*(mi|miles|mile|m)\b/i;
+    const INTERVAL_TITLE_RE = /(\d+)\s*[xX]\s*(\d*\.?\d+)?\s*(mi|miles|mile|m|km|k)\b/i;
 
     // Looks up a day's plan entry in the currently-viewed week by date.
     function findPlanEntry(date) {
@@ -1959,14 +1959,17 @@
       el.textContent = `Total: ${totalMiles.toFixed(2)} mi \u00b7 ${reps.length} reps \u00b7 ${formatTime(repSeconds)} rep time`;
     }
 
-    // Parses "10x400m Repeats" or "10x0.25mi Repeats" style titles into { count, meters }; falls back to 8x400m.
+    // Parses "10x400m Repeats", "10x0.25mi Repeats", "5x1k Repeats", or "3x Mile Repeats" (implicit 1)
+    // style titles into { count, meters }; falls back to 8x400m.
     function parseIntervalTitle(activity) {
       const m = activity.match(INTERVAL_TITLE_RE);
       if (!m) return { count: 8, meters: 400 };
       const count = parseInt(m[1], 10);
-      const rawDist = parseFloat(m[2]);
-      const isMiles = /^mi/i.test(m[3]);
-      const meters = Math.round(isMiles ? rawDist * METERS_PER_MILE : rawDist);
+      const rawDist = m[2] !== undefined ? parseFloat(m[2]) : 1; // e.g. "3x Mile" implies 1 mile
+      const unit = m[3].toLowerCase();
+      const isMiles = unit.startsWith('mi');
+      const isKm = unit === 'km' || unit === 'k';
+      const meters = Math.round(isMiles ? rawDist * METERS_PER_MILE : (isKm ? rawDist * 1000 : rawDist));
       return { count, meters };
     }
 

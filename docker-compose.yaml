@@ -1,7 +1,7 @@
 services:
-  running-tracker:
+  fitness-tracker:
     build: .
-    container_name: running-tracker
+    container_name: fitness-tracker
     ports:
       - "3001:5000"
     volumes:

@@ -7,16 +7,17 @@
             },
             {
                 "day": 25,
-                "activity": "Rest"
+                "activity": "Incline Walk"
             },
             {
                 "day": 26,
-                "activity": "Incline Walk"
+                "activity": "Easy Run",
+                "miles": 3.1
             },
             {
                 "day": 27,
                 "activity": "Easy Run",
-                "miles": 4
+                "miles": 3.1
             },
             {
                 "day": 28,
@@ -39,16 +40,17 @@
         "09": [
             {
                 "day": 1,
-                "activity": "Rest"
+                "activity": "Incline Walk"
             },
             {
                 "day": 2,
-                "activity": "Incline Walk"
+                "activity": "Easy Run",
+                "miles": 3.1
             },
             {
                 "day": 3,
                 "activity": "Easy Run",
-                "miles": 4
+                "miles": 4.0
             },
             {
                 "day": 4,
@@ -69,21 +71,20 @@
             },
             {
                 "day": 8,
-                "activity": "Incline Walk"
+                "activity": "6x .5miles Repeats"
             },
             {
                 "day": 9,
-                "activity": "Easy Run",
-                "miles": 3.1
+                "activity": "Rest"
             },
             {
                 "day": 10,
-                "activity": "Easy Run",
-                "miles": 3.1
+                "activity": "5k @ HMP"
             },
             {
                 "day": 11,
-                "activity": "6x .5miles Repeats"
+                "activity": "Easy Run",
+                "miles": 3.1
             },
             {
                 "day": 12,
@@ -162,6 +163,26 @@
             {
                 "day": 30,
                 "activity": "Rest"
+            }
+        ],
+        "10": [
+            {
+                "day": 1,
+                "activity": "Easy Run",
+                "miles": 4.0
+            },
+            {
+                "day": 2,
+                "activity": "Rest"
+            },
+            {
+                "day": 3,
+                "activity": "Rest"
+            },
+            {
+                "day": 4,
+                "activity": "Long Run",
+                "miles": 6.23
             }
         ]
     }

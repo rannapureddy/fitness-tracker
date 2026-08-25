@@ -1995,6 +1995,75 @@
       return workoutMiles === null ? null : Math.round((workoutMiles + 1.0) * 100) / 100;
     }
 
+    // Reads the current tempo-day form inputs and derives warmup/cooldown/workout totals.
+    function readTempoTotals(date) {
+      const warmupMiles = readNum('warmupMiles-' + date);
+      const cooldownMiles = readNum('cooldownMiles-' + date);
+      const workoutMiles = readNum('miles-' + date);
+      const workoutSeconds = computeTimeSeconds(date);
+      return { warmupMiles, cooldownMiles, workoutMiles, workoutSeconds, totalMiles: warmupMiles + workoutMiles + cooldownMiles };
+    }
+
+    function updateTempoTotals(date) {
+      updatePaceDisplay(date);
+      const el = document.getElementById('tempoTotals-' + date);
+      if (!el) return;
+      const { totalMiles } = readTempoTotals(date);
+      el.textContent = `Total: ${totalMiles.toFixed(2)} mi (incl. warm-up/cooldown)`;
+    }
+
+    function tempoFieldsHTML(entry, log) {
+      const totalSeconds = log.timeSeconds || 0;
+      const h = Math.floor(totalSeconds / 3600);
+      const m = Math.floor((totalSeconds % 3600) / 60);
+      const s = totalSeconds % 60;
+      const warmupMiles = log.warmup?.miles ?? 0.5;
+      const cooldownMiles = log.cooldown?.miles ?? 0.5;
+      const workoutMiles = log.workout?.miles ?? (parseTempoDistance(entry.activity) ?? '');
+      const initialPaceText = (workoutMiles > 0 && totalSeconds > 0) ? formatPace(totalSeconds / workoutMiles) : '--:-- /mi';
+      const splits = log.splits || [];
+      const splitRows = splits.map((sec, i) => splitRowHTML(entry.date, i, sec)).join('');
+      const oninput = `updateTempoTotals('${entry.date}')`;
+      return `
+    <div class="field">
+      <label>Warm-up (mi)</label>
+      <input type="number" step="0.01" id="warmupMiles-${entry.date}" value="${warmupMiles}" oninput="${oninput}">
+    </div>
+    <div class="field">
+      <label>Workout Miles</label>
+      <input type="number" step="0.01" id="miles-${entry.date}" value="${workoutMiles}" oninput="${oninput}">
+    </div>
+    <div class="field">
+      <label>Workout Time</label>
+      <div class="time-steppers">
+        <div class="stepper time-stepper">
+          <input type="number" id="time-${entry.date}-h" value="${h}" inputmode="numeric" min="0" oninput="${oninput}">
+          <span class="stepper-unit">hr</span>
+        </div>
+        <div class="stepper time-stepper">
+          <input type="number" id="time-${entry.date}-m" value="${m}" inputmode="numeric" min="0" max="59" oninput="${oninput}">
+          <span class="stepper-unit">min</span>
+        </div>
+        <div class="stepper time-stepper">
+          <input type="number" id="time-${entry.date}-s" value="${s}" inputmode="numeric" min="0" max="59" oninput="${oninput}">
+          <span class="stepper-unit">sec</span>
+        </div>
+      </div>
+    </div>
+    <div class="pace-display" id="paceDisplay-${entry.date}">Pace: ${initialPaceText}</div>
+    <div class="exercise-block">
+      <div class="exercise-title">Mile Splits (optional)</div>
+      <div id="splits-${entry.date}">${splitRows}</div>
+      <button type="button" class="add-set-btn" onclick="addSplitRow('${entry.date}')">+ Add Split</button>
+    </div>
+    <div class="field">
+      <label>Cooldown (mi)</label>
+      <input type="number" step="0.01" id="cooldownMiles-${entry.date}" value="${cooldownMiles}" oninput="${oninput}">
+    </div>
+    <div class="pace-display" id="tempoTotals-${entry.date}">Total: -- mi</div>
+  `;
+    }
+
     // Planned distance for a day: static plan value, except intervals/tempo use a dynamic estimate.
     function plannedMilesFor(entry, kind = activityKind(entry.activity)) {
       if (kind === 'intervals') return defaultIntervalMiles(entry.activity);
@@ -2067,6 +2136,8 @@
         fields = liftBlocksHTML(entry, log);
       } else if (kind === 'intervals') {
         fields = intervalFieldsHTML(entry, log);
+      } else if (kind === 'tempo') {
+        fields = tempoFieldsHTML(entry, log);
       } else if (kind === 'hybrid') {
         fields = `
       <div class="run-section-title">Run</div>
@@ -2094,6 +2165,7 @@
       bodyEl.classList.add('open');
       chev.classList.add('open');
       if (activityKind(entry.activity) === 'intervals') updateIntervalTotals(date);
+      if (activityKind(entry.activity) === 'tempo') updateTempoTotals(date);
     }
 
     async function doSave(date, kind) {
@@ -2122,6 +2194,13 @@
         data.pace = formatPace(totalSeconds / miles);
         const splits = readSplits(date);
         if (splits.length) data.splits = splits;
+      }
+      if (kind === 'tempo') {
+        const { warmupMiles, cooldownMiles, totalMiles } = readTempoTotals(date);
+        data.workout = { miles: data.miles };
+        data.warmup = { miles: warmupMiles };
+        data.cooldown = { miles: cooldownMiles };
+        data.miles = Math.round(totalMiles * 100) / 100;
       }
       if (kind === 'intervals') {
         const { warmupMiles, cooldownMiles, reps, repSeconds, totalMiles } = readIntervalTotals(date);
@@ -2239,7 +2318,9 @@
       if (isPacedRun(kind)) {
         if (logged.miles) {
           const timeStr = logged.timeSeconds ? formatTime(logged.timeSeconds) : '';
-          lines.push(`  Ran ${logged.miles} mi${timeStr ? ` in ${timeStr}` : ''}${logged.pace ? ` (${logged.pace})` : ''}`);
+          const label = kind === 'tempo' && logged.workout ? `Workout ${logged.workout.miles} mi` : `Ran ${logged.miles} mi`;
+          lines.push(`  ${label}${timeStr ? ` in ${timeStr}` : ''}${logged.pace ? ` (${logged.pace})` : ''}`);
+          if (kind === 'tempo' && logged.workout) lines.push(`  Total distance: ${logged.miles} mi (incl. warm-up/cooldown)`);
         }
       }
       if (lines.length === 0) {
